@@ -6,9 +6,6 @@ import fs from "node-fs";
 import path from "node:path";
 
 export default async function initBot() {
-  const allGuildChannels = [];
-  // client.guildSettings.set(guildId, { prefix: '/' });
-
   const client = new Client({
     intents: [Intents.FLAGS.GUILDS, Intents.FLAGS.DIRECT_MESSAGES],
     fetchAllMembers: true,
@@ -29,6 +26,7 @@ export default async function initBot() {
 
     client.commands.set(command.default.data.name, command);
   }
+
   client.on("guildCreate", async (guild) => {
     if (guild) {
       await deployCommands(guild.id);
@@ -40,7 +38,9 @@ export default async function initBot() {
   });
 
   client.on("interactionCreate", async (interaction) => {
-    if (!interaction.isCommand()) return;
+    if (!interaction.isCommand()) {
+      return interaction.reply("This command does not exist");
+    }
 
     const { commandName } = interaction;
 
@@ -62,3 +62,5 @@ export default async function initBot() {
   client.login(process.env.DISCORD_TOKEN);
   return client;
 }
+
+// await initBot();
