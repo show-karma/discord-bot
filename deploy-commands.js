@@ -3,7 +3,8 @@ import { Routes } from "discord-api-types/v9";
 import fs from "node-fs";
 import path from "path";
 import { fileURLToPath } from "url";
-import "dotenv/config";
+import dotenv from "dotenv";
+dotenv.config({ path: `.env.${process.env.NODE_ENV}` });
 
 export default async function deployCommands(guildId) {
   const __filename = fileURLToPath(import.meta.url);
@@ -33,3 +34,5 @@ export default async function deployCommands(guildId) {
     .then(() => console.log("Successfully registered application commands."))
     .catch(console.error);
 }
+
+await deployCommands("781670867129335869");

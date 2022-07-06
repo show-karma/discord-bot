@@ -6,8 +6,8 @@
   "type": "module",
   "scripts": {
     "deploy:commands": "node deploy-commands.js",
-    "start": "yarn run nodemon index.js",
-    "dev": "yarn run nodemon main.js"
+    "start:prod": "NODE_ENV=development yarn run nodemon main.js",
+    "start:stag": "NODE_ENV=staging yarn run nodemon main.js"
   },
   "dependencies": {
     "@discordjs/builders": "^0.15.0",

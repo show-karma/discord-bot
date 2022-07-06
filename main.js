@@ -1,9 +1,11 @@
-import "dotenv/config";
+import dotenv from "dotenv";
 import { Client, Intents, Collection } from "discord.js";
 import { fileURLToPath } from "url";
 import deployCommands from "./deploy-commands.js";
 import fs from "node-fs";
 import path from "node:path";
+
+dotenv.config({ path: `.env.${process.env.NODE_ENV}` });
 
 export default async function initBot() {
   const client = new Client({
@@ -63,4 +65,4 @@ export default async function initBot() {
   return client;
 }
 
-// await initBot();
+await initBot();

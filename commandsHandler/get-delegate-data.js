@@ -5,17 +5,21 @@ export default async function getDelegateData(interaction) {
   try {
     const { id: guildId, name: guildName } = interaction.guild;
     const address = interaction.options.getString("param");
+    const daoName = interaction.options.getString("dao");
 
     const userData = await (await api.get(`/user/${address}`)).data.data;
-    const delegate = userData.delegates
-      // .find((item) => guildName.includes(item.daoName))
-      .find((item) => item.daoName === "ens");
 
-    const delegateLifetimeStats = delegate.stats.find(
-      (item) => item.period === "lifetime"
-    );
+    const finalGuildName = daoName || guildName;
 
-    const userDataMessagemEmbed = new MessageEmbed().setDescription(`
+    let message = "";
+
+    if (daoName && daoName.toLowerCase() === "all") {
+      userData.delegates.map((delegate) => {
+        const delegateLifetimeStats = delegate.stats.find(
+          (item) => item.period === "lifetime"
+        );
+
+        message = message.concat(`
         Dao: ${delegate.daoName}
         Name: ${userData.ensName}
         Address: ${userData.address}
@@ -23,10 +27,33 @@ export default async function getDelegateData(interaction) {
         On-chain voting percent: ${delegateLifetimeStats.onChainVotesPct}%
         Off-chain voting percent: ${delegateLifetimeStats.offChainVotesPct}%
       `);
+      });
+    } else {
+      const delegate = userData.delegates.find((item) =>
+        finalGuildName.includes(item.daoName)
+      );
 
-    return interaction.reply({
-      embeds: [userDataMessagemEmbed],
-    });
+      if (!delegate) {
+        return interaction.reply("No delegate found");
+      }
+
+      const delegateLifetimeStats = delegate.stats.find(
+        (item) => item.period === "lifetime"
+      );
+
+      message = `
+      Dao: ${delegate.daoName}
+      Name: ${userData.ensName}
+      Address: ${userData.address}
+      Delegated votes: ${delegateLifetimeStats.delegatedVotes}
+      On-chain voting percent: ${delegateLifetimeStats.onChainVotesPct}%
+      Off-chain voting percent: ${delegateLifetimeStats.offChainVotesPct}%
+    `;
+    }
+
+    const userDataMessagemEmbed = new MessageEmbed().setDescription(message);
+
+    return interaction.reply({ embeds: [userDataMessagemEmbed] });
   } catch (err) {
     console.log(err);
     return interaction.reply(err.message);

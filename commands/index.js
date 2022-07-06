@@ -26,8 +26,13 @@ export default {
         .addStringOption((option) =>
           option
             .setName("param")
-            .setDescription("address, forum name or discordId")
+            .setDescription("address, ens name")
             .setRequired(true)
+        )
+        .addStringOption((option) =>
+          option
+            .setName("dao")
+            .setDescription(`blank: default dao \n dao name \n all `)
         )
     ),
 
