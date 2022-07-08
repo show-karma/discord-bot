@@ -34,7 +34,7 @@ export default async function getDelegateData(interaction) {
       );
 
       if (!delegate) {
-        return interaction.reply("No delegate found");
+        return interaction.reply("Delegate not found");
       }
 
       const delegateLifetimeStats = delegate.stats.find(
@@ -55,7 +55,6 @@ export default async function getDelegateData(interaction) {
 
     return interaction.reply({ embeds: [userDataMessagemEmbed] });
   } catch (err) {
-    console.log(err);
-    return interaction.reply(err.message);
+    return interaction.reply("User not found");
   }
 }
