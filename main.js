@@ -5,7 +5,7 @@ import deployCommands from "./deploy-commands.js";
 import fs from "node-fs";
 import path from "node:path";
 
-dotenv.config({ path: `.env.${process.env.NODE_ENV}` });
+dotenv.config();
 
 export default async function initBot() {
   const client = new Client({

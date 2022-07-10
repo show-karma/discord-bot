@@ -4,7 +4,7 @@ import fs from "node-fs";
 import path from "path";
 import { fileURLToPath } from "url";
 import dotenv from "dotenv";
-dotenv.config({ path: `.env.${process.env.NODE_ENV}` });
+dotenv.config();
 
 export default async function deployCommands(guildId) {
   const __filename = fileURLToPath(import.meta.url);
