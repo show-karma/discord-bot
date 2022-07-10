@@ -22,3 +22,4 @@ terraform.rc
 *.secrets
 .idea
 aws.secret
+yarn-error.log

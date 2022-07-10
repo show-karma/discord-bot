@@ -25,7 +25,7 @@ inputs = {
   min_size               = 1
   capacity_provider_name = "cp-staging"
   memory                 = 1024
-  command                = "node index.js"
+  command                = "node main.js"
 }
 
 
