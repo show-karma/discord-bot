@@ -34,5 +34,3 @@ export default async function deployCommands(guildId) {
     .then(() => console.log("Successfully registered application commands."))
     .catch(console.error);
 }
-
-await deployCommands("781670867129335869");
