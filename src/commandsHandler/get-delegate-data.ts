@@ -1,23 +1,22 @@
-import { MessageEmbed } from "discord.js";
-import { api } from "../service/api.js";
+import { CommandInteraction, GuildMember, MessageEmbed } from 'discord.js';
+import { api } from '../service/api';
 
-export default async function getDelegateData(interaction) {
+export default async function getDelegateData(interaction: CommandInteraction) {
   try {
+    const member = interaction.member as GuildMember;
     const { id: guildId, name: guildName } = interaction.guild;
-    const address = interaction.options.getString("param");
-    const daoName = interaction.options.getString("dao");
+    const address = interaction.options.getString('param');
+    const daoName = interaction.options.getString('dao');
 
     const userData = await (await api.get(`/user/${address}`)).data.data;
 
     const finalGuildName = daoName || guildName;
 
-    let message = "";
+    let message = '';
 
-    if (daoName && daoName.toLowerCase() === "all") {
+    if (daoName && daoName.toLowerCase() === 'all') {
       userData.delegates.map((delegate) => {
-        const delegateLifetimeStats = delegate.stats.find(
-          (item) => item.period === "lifetime"
-        );
+        const delegateLifetimeStats = delegate.stats.find((item) => item.period === 'lifetime');
 
         message = message.concat(`
         Dao: ${delegate.daoName}
@@ -29,17 +28,13 @@ export default async function getDelegateData(interaction) {
       `);
       });
     } else {
-      const delegate = userData.delegates.find((item) =>
-        finalGuildName.includes(item.daoName)
-      );
+      const delegate = userData.delegates.find((item) => finalGuildName.includes(item.daoName));
 
       if (!delegate) {
-        return interaction.reply("No delegate found");
+        return interaction.reply('Delegate not found');
       }
 
-      const delegateLifetimeStats = delegate.stats.find(
-        (item) => item.period === "lifetime"
-      );
+      const delegateLifetimeStats = delegate.stats.find((item) => item.period === 'lifetime');
 
       message = `
       Dao: ${delegate.daoName}
@@ -53,9 +48,11 @@ export default async function getDelegateData(interaction) {
 
     const userDataMessagemEmbed = new MessageEmbed().setDescription(message);
 
-    return interaction.reply({ embeds: [userDataMessagemEmbed] });
+    return member.send({ embeds: [userDataMessagemEmbed] });
   } catch (err) {
-    console.log(err);
-    return interaction.reply(err.message);
+    console.log(err.response.data.error);
+    return interaction.reply(
+      err.response.data.error.message || 'Something went wrong, please try again'
+    );
   }
 }
