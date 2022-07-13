@@ -27,7 +27,7 @@ export const data = new SlashCommandBuilder()
   );
 
 export async function execute(interaction: CommandInteraction) {
-  await interaction.reply('Check your DM');
+  interaction.reply('Check your DM');
   switch (interaction.options.getSubcommand()) {
     case 'linkwallet':
       return linkWalletHandler(interaction);
