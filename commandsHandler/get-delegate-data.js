@@ -2,14 +2,15 @@ import { MessageEmbed } from "discord.js";
 import { api } from "../service/api.js";
 
 export default async function getDelegateData(interaction) {
-  await interaction.reply("Check your DM");
+  const member = interaction.member;
+  const { id: guildId, name: guildName } = interaction.guild;
+  const address = interaction.options.getString("param");
+  const daoName = interaction.options.getString("dao");
   try {
-    const member = interaction.member;
-    const { id: guildId, name: guildName } = interaction.guild;
-    const address = interaction.options.getString("param");
-    const daoName = interaction.options.getString("dao");
-
     const userData = await (await api.get(`/user/${address}`)).data.data;
+    if (!userData) {
+      return interaction.reply("User not found");
+    }
 
     const finalGuildName = daoName || guildName;
 
@@ -53,10 +54,11 @@ export default async function getDelegateData(interaction) {
     `;
     }
 
+    interaction.reply("");
     const userDataMessagemEmbed = new MessageEmbed().setDescription(message);
 
     return member.send({ embeds: [userDataMessagemEmbed] });
   } catch (err) {
-    return member.send("User not found");
+    return interaction.reply("User not found");
   }
 }
