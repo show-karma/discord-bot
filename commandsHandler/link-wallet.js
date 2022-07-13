@@ -16,7 +16,7 @@ export default async function linkWalletHandler(interaction) {
       })
     );
     await member.send(
-      `http://292e-2804-1b2-d080-eda6-50d5-db7b-c867-cd17.ngrok.io/discord/linking?message=${encryptedData}`
+      `https://staging.showkarma.xyz/discord/linking?message=${encryptedData}`
     );
     await interaction.reply("Check your DM");
   } catch (err) {
