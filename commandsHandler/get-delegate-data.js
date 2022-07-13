@@ -2,7 +2,9 @@ import { MessageEmbed } from "discord.js";
 import { api } from "../service/api.js";
 
 export default async function getDelegateData(interaction) {
+  await interaction.reply("Check your DM");
   try {
+    const member = interaction.member;
     const { id: guildId, name: guildName } = interaction.guild;
     const address = interaction.options.getString("param");
     const daoName = interaction.options.getString("dao");
@@ -53,8 +55,8 @@ export default async function getDelegateData(interaction) {
 
     const userDataMessagemEmbed = new MessageEmbed().setDescription(message);
 
-    return interaction.reply({ embeds: [userDataMessagemEmbed] });
+    return member.send({ embeds: [userDataMessagemEmbed] });
   } catch (err) {
-    return interaction.reply("User not found");
+    return member.send("User not found");
   }
 }
