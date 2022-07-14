@@ -1,20 +1,21 @@
-import { Pool } from 'pg';
+import { Pool, Client } from 'pg';
 import dotenv from 'dotenv';
 dotenv.config();
 
 const { PGHOST, PGPORT, PGUSERNAME, PGPASSWORD, PGDATABASE } = process.env;
 
-const pool = new Pool({
+const config = {
   user: PGUSERNAME,
   password: PGPASSWORD,
   database: PGDATABASE,
   host: PGHOST,
-  port: PGPORT,
-  define: {
-    timestamps: true,
-    underscored: true,
-    underscoredAll: true
-  }
-});
+  port: +PGPORT
+};
+
+const pool = new Pool(config);
+
+export function getClient(): Client {
+  return new Client(config);
+}
 
 export default pool;
