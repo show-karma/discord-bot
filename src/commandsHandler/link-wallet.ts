@@ -11,13 +11,13 @@ export default async function linkWalletHandler(interaction: CommandInteraction)
     return await member.send('Invalid eth address!');
   }
   try {
-    const encryptedData = CryptoJsHandler.encrypt(
+    const encryptedData = new CryptoJsHandler(process.env.DISCORD_BOT_AES256_SECRET).encrypt(
       JSON.stringify({
         discordId: interaction.user.id,
         userAddress: address
       })
     );
-    await member.send(`https://staging.showkarma.xyz/discord/linking?message=${encryptedData}`);
+    await member.send(`${process.env.FRONT_URL}/discord/linking?message=${encryptedData}`);
   } catch (err) {
     console.log(err);
     if (err.code === 50007) {

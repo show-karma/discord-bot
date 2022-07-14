@@ -1,6 +1,6 @@
 /* eslint-disable no-console */
 import { CommandInteraction, GuildMember, MessageEmbed } from 'discord.js';
-import { api } from '../service/api';
+import { api } from '../api/index';
 
 export default async function getDelegateData(interaction: CommandInteraction) {
   const member = interaction.member as GuildMember;

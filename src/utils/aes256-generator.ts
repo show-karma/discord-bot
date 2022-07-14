@@ -1,11 +1,11 @@
 import { createHash, createDecipheriv, createCipheriv } from 'crypto';
 import 'dotenv/config';
 
-class CryptoJsHandler {
+export default class CryptoJsHandler {
   private secret: string;
   private resizedIV: Buffer;
 
-  constructor(secret = process.env.DISCORD_BOT_AES256_SECRET) {
+  constructor(secret: string) {
     this.secret = secret;
     this.setup();
   }
@@ -46,5 +46,3 @@ class CryptoJsHandler {
     return this._(str, createDecipheriv, secret);
   }
 }
-
-export default new CryptoJsHandler();
