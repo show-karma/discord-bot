@@ -6,12 +6,24 @@ interface User {
 }
 
 export default class UserRepository {
-  async getUsersWithDiscordHandle() {
-    return <User[]>(
-      await pool.query(`
-    SELECT "id", "discordHandle"
-    FROM "User"
-    WHERE "discordHandle" IS NOT NULL`)
-    ).rows;
+  async getUsersWithDiscordHandle(discordId?: string) {
+    const users = discordId
+      ? (
+          await pool.query(
+            `
+              SELECT "id", "discordHandle"
+              FROM "User"
+              WHERE "discordHandle" = $1`,
+            [discordId]
+          )
+        ).rows
+      : (
+          await pool.query(`
+          SELECT "id", "discordHandle"
+          FROM "User"
+          WHERE "discordHandle" IS NOT NULL`)
+        ).rows;
+
+    return <User[]>users;
   }
 }

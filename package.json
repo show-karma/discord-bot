@@ -5,11 +5,15 @@
   "license": "MIT",
   "scripts": {
     "deploy:commands": "yarn ts-node src/deploy-commands.ts",
-    "start": "NODE_ENV=development TZ=UTC yarn ts-node src/main.ts"
+    "start": "NODE_ENV=development TZ=UTC yarn ts-node src/main.ts",
+    "service:discord:message:update:consumer": "TZ=UTC NODE_ENV=development nodemon src/services/discord-message-consumer/main.ts",
+    "discord:message:update": "TZ=UTC NODE_ENV=development ts-node src/jobs/get-messages-job.ts"
   },
   "dependencies": {
     "@discordjs/builders": "^0.15.0",
     "@discordjs/rest": "^0.5.0",
+    "@types/aws-sdk": "^2.7.0",
+    "aws-sdk": "^2.1174.0",
     "axios": "^0.27.2",
     "crypto-js": "^4.1.1",
     "discord-api-types": "^0.34.0",

@@ -6,7 +6,6 @@ import DaoRepository from '../repos/dao-repo';
 import MessageRepository from '../repos/message-repo';
 import { delay } from '../utils/delay';
 import dotenv from 'dotenv';
-
 dotenv.config();
 
 interface MessageCustom {
@@ -21,7 +20,7 @@ export default class GetPastMessagesService {
     private readonly messageRepository = new MessageRepository()
   ) {}
 
-  async getMessages() {
+  async getMessages(discordId?: string, guildIds?: string | string[]) {
     const client = new Client({
       intents: [Intents.FLAGS.GUILDS, Intents.FLAGS.DIRECT_MESSAGES]
     });
@@ -38,19 +37,22 @@ export default class GetPastMessagesService {
     await delay(5000);
 
     try {
+      console.log({ discordId, guildIds });
       const allBotGuilds = Array.from(await client.guilds.fetch());
-      const allUsers = await this.userRepository.getUsersWithDiscordHandle();
-      const allDaos = await this.daoRepository.getDaoWithDiscordGuildId();
-      const allMessagesToSave = []; // arrays to save all messages
+      const allUsers = await this.userRepository.getUsersWithDiscordHandle(discordId);
 
+      const allDaos = guildIds?.length
+        ? guildIds
+        : (await this.daoRepository.getDaoWithDiscordGuildId()).map((dao) => dao.discordGuildId);
+      const allMessagesToSave = [];
       if (!allDaos.length || !allUsers.length) {
         throw new Error('Daos or Users are empty');
       }
 
       for (const dao of allDaos) {
-        if (!allBotGuilds.find((item) => item[0] === dao.discordGuildId)) continue;
+        if (!allBotGuilds.find((item) => item[0] === dao)) continue;
 
-        const channels = (await client.guilds.fetch(dao.discordGuildId)).channels.cache;
+        const channels = (await client.guilds.fetch(dao)).channels.cache;
         const textChannels = [];
         [...channels].map((channel) => {
           if (channel[1].name && channel[1].id && channel[1].type === 'GUILD_TEXT') {
@@ -63,8 +65,9 @@ export default class GetPastMessagesService {
         });
 
         for (const channel of textChannels) {
-          const lastMessageId = await this.messageRepository.getLastMessageOfOneChannel(channel.id);
-          let pointerMessage = lastMessageId.messageId || undefined;
+          // const lastMessageId = await this.messageRepository.getLastMessageOfOneChannel(channel.id);
+          // let pointerMessage = lastMessageId.messageId || undefined;
+          let pointerMessage = null;
           let flagToContinue = false;
           do {
             const messages = await (
@@ -84,7 +87,7 @@ export default class GetPastMessagesService {
                 if (userExists && +message.createdTimestamp >= +requiredDate) {
                   allMessagesToSave.push({
                     date: message.createdTimestamp,
-                    guildId: dao.discordGuildId,
+                    guildId: dao,
                     channelId: channel.id,
                     userId: userExists.id
                   });
@@ -99,14 +102,13 @@ export default class GetPastMessagesService {
           } while (flagToContinue);
         }
       }
-
+      console.log(allMessagesToSave.length);
       // here need to implement the query to insert allMessagesToSave
 
-      return client.destroy();
+      client.destroy();
+      process.exit(1);
     } catch (err) {
       console.log('error: ', err);
     }
   }
 }
-
-new GetPastMessagesService().getMessages();

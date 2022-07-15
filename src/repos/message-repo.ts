@@ -11,7 +11,7 @@ export default class MessageRepository {
         `
         SELECT "messageId"
         FROM "MessageTable"
-        WHERE "channelId" = '$1'
+        WHERE "channelId" = $1
         ORDER BY "messageId" DESC
         LIMIT 1`,
         [channelId]

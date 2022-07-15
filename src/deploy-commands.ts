@@ -1,7 +1,7 @@
 import { REST } from '@discordjs/rest';
 import { Routes } from 'discord-api-types/v9';
-import dotenv from 'dotenv';
 import * as commandModules from './commands';
+import dotenv from 'dotenv';
 dotenv.config();
 
 export default async function deployCommands(guildId: string) {
