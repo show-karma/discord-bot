@@ -1,5 +1,5 @@
 /* eslint-disable no-console */
-import { DiscordMessageConsumerService } from './delegate-stat-update-consumer.service';
+import { DiscordMessageConsumerService } from './discord-message-consumer.service';
 import dotenv from 'dotenv';
 dotenv.config();
 
