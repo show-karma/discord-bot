@@ -33,6 +33,7 @@ export class MessageBulkWriter {
       await this.insertMessages(toWriteMessages);
       this.messageInsertCount += toWriteMessages.length;
     }
+    await this.end();
   }
 
   private async insertMessages(messages: Message[]) {

@@ -3,12 +3,14 @@
 import { Client, Intents } from 'discord.js';
 import UserRepository from '../repos/user-repo';
 import DaoRepository from '../repos/dao-repo';
-import MessageRepository from '../repos/message-repo';
 import { delay } from '../utils/delay';
 import dotenv from 'dotenv';
+import { LastMessageIdGetterService } from './last-message-id-getter.service';
+import { MessageBulkWriter } from './message-bulk-writer';
 dotenv.config();
 
 interface MessageCustom {
+  id: string;
   createdTimestamp: string;
   author: { id: string };
 }
@@ -17,9 +19,11 @@ export default class GetPastMessagesService {
   constructor(
     private readonly userRepository = new UserRepository(),
     private readonly daoRepository = new DaoRepository(),
-    private readonly messageRepository = new MessageRepository()
+    private readonly getMessageService = new LastMessageIdGetterService(),
+    private readonly messageBulkWriter = new MessageBulkWriter()
   ) {}
 
+  // eslint-disable-next-line max-lines-per-function
   async getMessages(discordId?: string, guildIds?: string | string[]) {
     const client = new Client({
       intents: [Intents.FLAGS.GUILDS, Intents.FLAGS.DIRECT_MESSAGES]
@@ -37,43 +41,39 @@ export default class GetPastMessagesService {
     await delay(5000);
 
     try {
-      console.log({ discordId, guildIds });
       const allBotGuilds = Array.from(await client.guilds.fetch());
       const allUsers = await this.userRepository.getUsersWithDiscordHandle(discordId);
 
-      const allDaos = guildIds?.length
+      const allGuilds = guildIds?.length
         ? guildIds
         : (await this.daoRepository.getDaoWithDiscordGuildId()).map((dao) => dao.discordGuildId);
       const allMessagesToSave = [];
-      if (!allDaos.length || !allUsers.length) {
+      if (!allGuilds.length || !allUsers.length) {
         throw new Error('Daos or Users are empty');
       }
 
-      for (const dao of allDaos) {
-        if (!allBotGuilds.find((item) => item[0] === dao)) continue;
+      for (const guild of allGuilds) {
+        if (!allBotGuilds.find((item) => item[0] === guild)) continue;
 
-        const channels = (await client.guilds.fetch(dao)).channels.cache;
+        const channels = (await client.guilds.fetch(guild)).channels.cache;
         const textChannels = [];
         [...channels].map((channel) => {
           if (channel[1].name && channel[1].id && channel[1].type === 'GUILD_TEXT') {
             textChannels.push({
               name: channel[1].name,
-              id: channel[1].id,
-              countMessages: 0
+              id: channel[1].id
             });
           }
         });
 
         for (const channel of textChannels) {
-          // const lastMessageId = await this.messageRepository.getLastMessageOfOneChannel(channel.id);
-          // let pointerMessage = lastMessageId.messageId || undefined;
-          let pointerMessage = null;
-          let flagToContinue = false;
+          const fixedMessageId = await this.getMessageService.getLastMessageId(guild, channel.id);
+          let pointerMessage = undefined;
+          let flagTimeRangeContinue = true;
           do {
             const messages = await (
               (await client.channels.cache.get(channel.id)) as any
             ).messages.fetch({
-              limit: 100,
               before: pointerMessage
             });
 
@@ -84,31 +84,37 @@ export default class GetPastMessagesService {
                 const userExists = allUsers.find(
                   (user) => user.discordHandle === message.author.id
                 );
-                if (userExists && +message.createdTimestamp >= +requiredDate) {
+                if (+message.createdTimestamp <= +requiredDate) {
+                  flagTimeRangeContinue = false;
+                }
+                if (
+                  userExists &&
+                  +message.createdTimestamp >= +requiredDate &&
+                  +message.id > +fixedMessageId
+                ) {
                   allMessagesToSave.push({
-                    date: message.createdTimestamp,
-                    guildId: dao,
+                    messageCreatedAt: new Date(message.createdTimestamp),
+                    messageId: message.id,
+                    guildId: guild,
                     channelId: channel.id,
                     userId: userExists.id
                   });
                 }
               });
 
-            pointerMessage = messagesToArray[messagesToArray.length - 1]
-              ? messagesToArray[messagesToArray.length - 1][0]
-              : undefined;
-
-            flagToContinue = messagesToArray.length && [...messages].length > 0;
-          } while (flagToContinue);
+            pointerMessage = messagesToArray[messagesToArray.length - 1]?.[0];
+          } while (pointerMessage && pointerMessage > fixedMessageId && flagTimeRangeContinue);
         }
       }
-      console.log(allMessagesToSave.length);
-      // here need to implement the query to insert allMessagesToSave
 
-      client.destroy();
-      process.exit(1);
+      if (allMessagesToSave.length > 0) {
+        await this.messageBulkWriter.write(allMessagesToSave);
+        await this.messageBulkWriter.end();
+      }
     } catch (err) {
       console.log('error: ', err);
     }
+    client.destroy();
+    process.exit(1);
   }
 }
