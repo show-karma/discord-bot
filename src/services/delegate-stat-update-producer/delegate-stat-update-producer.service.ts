@@ -1,4 +1,3 @@
-/* eslint-disable no-console */
 import { AwsSqsService } from '../../aws-sqs/aws-sqs.service';
 import { DelegateStatUpdateMessage } from '../../@types/delegate-stat-update';
 
