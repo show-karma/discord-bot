@@ -1,7 +1,7 @@
 import { SlashCommandBuilder } from '@discordjs/builders';
 import linkWalletHandler from '../commandsHandler/link-wallet';
 import getDelegateData from '../commandsHandler/get-delegate-data';
-import { CommandInteraction } from 'discord.js';
+import { Client, CommandInteraction } from 'discord.js';
 
 export const data = new SlashCommandBuilder()
   .setName('karma')
@@ -26,14 +26,19 @@ export const data = new SlashCommandBuilder()
       )
   );
 
-export async function execute(interaction: CommandInteraction) {
-  interaction.reply('Check your DM');
+export async function execute(interaction: CommandInteraction, client: Client) {
+  const user = client.users.cache.get(interaction.member.user.id);
   switch (interaction.options.getSubcommand()) {
     case 'linkwallet':
-      return linkWalletHandler(interaction);
+      await linkWalletHandler(interaction, user);
+      break;
     case 'stats':
-      return getDelegateData(interaction);
+      await getDelegateData(interaction, user);
+      break;
     default:
-      return await interaction.reply('This command does not exist');
+      await interaction.editReply('This command does not exist');
+      break;
   }
+
+  await interaction.deleteReply();
 }

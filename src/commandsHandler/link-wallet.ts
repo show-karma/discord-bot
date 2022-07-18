@@ -1,14 +1,13 @@
 /* eslint-disable no-console */
 import { isEthAddress } from '../utils/is-eth-address';
 import CryptoJsHandler from '../utils/aes256-generator';
-import { CommandInteraction, GuildMember } from 'discord.js';
+import { CommandInteraction, User } from 'discord.js';
 
-export default async function linkWalletHandler(interaction: CommandInteraction) {
-  const member = interaction.member as GuildMember;
+export default async function linkWalletHandler(interaction: CommandInteraction, user: User) {
   const address = interaction.options.getString('address');
 
   if (!isEthAddress(address)) {
-    return await member.send('Invalid eth address!');
+    return await user.send('Invalid eth address!');
   }
   try {
     const encryptedData = new CryptoJsHandler(process.env.DISCORD_BOT_AES256_SECRET).encrypt(
@@ -17,7 +16,7 @@ export default async function linkWalletHandler(interaction: CommandInteraction)
         userAddress: address
       })
     );
-    await member.send(`${process.env.FRONT_URL}/discord/linking?message=${encryptedData}`);
+    await user.send(`${process.env.FRONT_URL}/discord/linking?message=${encryptedData}`);
   } catch (err) {
     console.log(err);
     if (err.code === 50007) {

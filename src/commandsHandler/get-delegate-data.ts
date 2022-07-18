@@ -1,9 +1,8 @@
 /* eslint-disable no-console */
-import { CommandInteraction, GuildMember, MessageEmbed } from 'discord.js';
+import { CommandInteraction, MessageEmbed, User } from 'discord.js';
 import { api } from '../api/index';
 
-export default async function getDelegateData(interaction: CommandInteraction) {
-  const member = interaction.member as GuildMember;
+export default async function getDelegateData(interaction: CommandInteraction, user: User) {
   const { name: guildName } = interaction.guild;
   const address = interaction.options.getString('param');
   const daoName = interaction.options.getString('dao');
@@ -12,7 +11,7 @@ export default async function getDelegateData(interaction: CommandInteraction) {
     const userData = await (await api.get(`/user/${address}`)).data.data;
 
     if (!userData) {
-      return member.send('User not found');
+      return user.send('User not found');
     }
 
     const finalGuildName = daoName || guildName;
@@ -36,7 +35,7 @@ export default async function getDelegateData(interaction: CommandInteraction) {
       const delegate = userData.delegates.find((item) => finalGuildName.includes(item.daoName));
 
       if (!delegate) {
-        return member.send('Delegate not found');
+        return user.send('Delegate not found');
       }
 
       const delegateLifetimeStats = delegate.stats.find((item) => item.period === 'lifetime');
@@ -53,9 +52,9 @@ export default async function getDelegateData(interaction: CommandInteraction) {
 
     const userDataMessagemEmbed = new MessageEmbed().setDescription(message);
 
-    return member.send({ embeds: [userDataMessagemEmbed] });
+    return user.send({ embeds: [userDataMessagemEmbed] });
   } catch (err) {
     console.log(err.response.data.error);
-    return member.send(err.response.data.error.message || 'Something went wrong, please try again');
+    return user.send(err.response.data.error.message || 'Something went wrong, please try again');
   }
 }

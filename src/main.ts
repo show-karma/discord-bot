@@ -1,3 +1,4 @@
+/* eslint-disable no-console */
 import { Client, Guild, Intents } from 'discord.js';
 import deployCommands from './deploy-commands';
 import * as commandModules from './commands';
@@ -31,13 +32,13 @@ client.on('interactionCreate', async (interaction: CustomInteraction) => {
 
   if (!command) return;
   try {
-    await command.execute(interaction);
+    await interaction.deferReply();
+    await command.execute(interaction, client);
   } catch (error) {
-    console.error(error);
-    await interaction.reply({
-      content: 'There was an error while executing this command!',
-      ephemeral: true
-    });
+    console.log('Error: ', error.message);
+    await interaction.editReply(
+      'There was an error while executing this command, please change your settings to allow dm messages'
+    );
   }
 });
 
