@@ -6,7 +6,6 @@ import { delay } from '../utils/delay';
 import dotenv from 'dotenv';
 import { LastMessageIdGetterService } from './last-message-id-getter.service';
 import { MessageBulkWriter } from './message-bulk-writer';
-import { DelegateStatUpdateProducerService } from './delegate-stat-update-producer/delegate-stat-update-producer.service';
 import { DiscordSQSMessage } from '../@types/discord-message-update';
 dotenv.config();
 
@@ -19,8 +18,7 @@ interface MessageCustom {
 export default class GetPastMessagesService {
   constructor(
     private readonly getMessageService = new LastMessageIdGetterService(),
-    private readonly messageBulkWriter = new MessageBulkWriter(),
-    private readonly delegateStatUpdateProducerService = new DelegateStatUpdateProducerService()
+    private readonly messageBulkWriter = new MessageBulkWriter()
   ) {}
 
   // eslint-disable-next-line max-lines-per-function
