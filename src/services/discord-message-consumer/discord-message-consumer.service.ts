@@ -7,7 +7,6 @@ const LOG_CTX = 'DelegateStatUpdateConsumerService';
 export class DiscordMessageConsumerService {
   constructor(
     private readonly sqs = new AwsSqsService({
-      region: process.env.AWS_SQS_DISCORD_DELEGATE_MESSAGE_UPDATE_REGION,
       queueUrl: process.env.AWS_SQS_DISCORD_DELEGATE_MESSAGE_UPDATE_URL
     })
   ) {}

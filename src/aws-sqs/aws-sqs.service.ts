@@ -7,7 +7,7 @@ export class AwsSqsService {
 
   constructor(private readonly options: AwsSqsOptions) {
     this.sqs = new SQS({
-      region: this.options.region
+      region: process.env.AWS_SQS_DISCORD_DELEGATE_MESSAGE_UPDATE_REGION
     });
   }
 

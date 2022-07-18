@@ -1,4 +1,4 @@
 export interface AwsSqsOptions {
-  region: string;
+  region?: string;
   queueUrl: string;
 }
