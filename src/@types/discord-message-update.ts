@@ -1,4 +1,8 @@
 export interface DiscordSQSMessage {
-  discordId: string;
-  guildIds: string | string[];
+  reason: string;
+  userId?: number | number[];
+  discordId?: string;
+  publicAddress?: string;
+  daos: { name: string; guildId: string }[];
+  timestamp: number;
 }
