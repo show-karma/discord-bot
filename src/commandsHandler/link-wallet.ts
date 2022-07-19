@@ -16,7 +16,7 @@ export default async function linkWalletHandler(interaction: CommandInteraction,
         userAddress: address
       })
     );
-    await user.send(`${process.env.FRONT_URL}/discord/linking?message=${encryptedData}`);
+    await user.send(`${process.env.FRONTEND_URL}/discord/linking?message=${encryptedData}`);
   } catch (err) {
     console.log(err);
     if (err.code === 50007) {
