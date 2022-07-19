@@ -4,6 +4,7 @@
   "main": "index.js",
   "license": "MIT",
   "scripts": {
+    "build": "tsc",
     "deploy:commands": "yarn ts-node src/deploy-commands.ts",
     "start": "NODE_ENV=development TZ=UTC yarn ts-node src/main.ts",
     "service:discord:message:update:consumer": "TZ=UTC NODE_ENV=development nodemon src/services/discord-message-consumer/main.ts",

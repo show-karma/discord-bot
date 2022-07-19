@@ -6,6 +6,19 @@ import { CustomInteraction } from './@types/custom-interaction';
 import dotenv from 'dotenv';
 dotenv.config();
 
+const LOG_CTX = 'main.ts';
+
+function onError(err: Error) {
+  console.error(err, LOG_CTX);
+  process.exit(1);
+}
+
+process.on('uncaughtException', onError);
+process.on('unhandledRejection', onError);
+
+if (process.env.TZ !== 'UTC') throw new Error('TZ=UTC not set');
+if (!process.env.NODE_ENV) throw new Error('NODE_ENV not set');
+
 const allCommands = [Object(commandModules)];
 
 const client = new Client({
