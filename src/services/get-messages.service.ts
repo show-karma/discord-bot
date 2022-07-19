@@ -90,6 +90,9 @@ export default class GetPastMessagesService {
 
                 console.log('userExists', userExists);
 
+                console.log(message.createdTimestamp, 'message.createdTimestamp');
+                console.log(requiredDate, 'requiredDate');
+
                 if (
                   userExists &&
                   +message.createdTimestamp >= +requiredDate &&
