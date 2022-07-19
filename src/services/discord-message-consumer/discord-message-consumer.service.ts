@@ -24,10 +24,10 @@ export class DiscordMessageConsumerService {
           const parsedMessage = JSON.parse(message.message) as DiscordSQSMessage;
 
           console.log(`[${message.messageId}][${JSON.stringify(parsedMessage)}]`, LOG_CTX);
-          if (parsedMessage.daos) {
-            console.log(parsedMessage);
-            await new GetPastMessagesService().getMessages(parsedMessage);
-          }
+          // if (parsedMessage.daos) {
+          console.log(parsedMessage);
+          await new GetPastMessagesService().getMessages(parsedMessage);
+          // }
 
           console.log(`Time [${Date.now() - startTime}]`, LOG_CTX);
         }
