@@ -43,9 +43,12 @@ export default class GetPastMessagesService {
       const allUsers = [discordId].flat();
       const allGuilds = daos;
       const allMessagesToSave = [];
+      let messagescount = 0;
       if (!allGuilds.length) {
         throw new Error('Daos are empty');
       }
+      console.log('Daos of user: ', allGuilds);
+      console.log('Servers -> bot is inside: ', allBotGuilds);
 
       for (const guild of allGuilds) {
         if (!allBotGuilds.find((item) => +item[0] === +guild.guildId)) continue;
@@ -79,6 +82,7 @@ export default class GetPastMessagesService {
 
             messagesToArray.length &&
               messages.map((message: MessageCustom) => {
+                messagescount += 1;
                 const userExists = allUsers.find((user) => +user === +message.author.id);
                 if (+message.createdTimestamp <= +requiredDate) {
                   flagTimeRangeContinue = false;
@@ -105,6 +109,8 @@ export default class GetPastMessagesService {
         }
       }
 
+      console.log('All messages count: ', messagescount);
+      console.log('allMessagesToSave length: ', allMessagesToSave.length);
       if (allMessagesToSave.length > 0) {
         await this.messageBulkWriter.write(allMessagesToSave);
         await this.messageBulkWriter.end();
