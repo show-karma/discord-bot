@@ -13,6 +13,7 @@ export class DelegateStatUpdateProducerService {
   async produce(message: DelegateStatUpdateMessage) {
     try {
       const meesageId = await this.sqs.sendMessage(JSON.stringify(message));
+
       console.log(`[${meesageId}][${JSON.stringify(message)}]`, LOG_CTX);
     } catch (err) {
       console.error(err, LOG_CTX);

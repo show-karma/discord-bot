@@ -92,14 +92,6 @@ export default class GetPastMessagesService {
                   flagTimeRangeContinue = false;
                 }
 
-                console.log('userExists', userExists);
-
-                console.log(message.createdTimestamp, 'message.createdTimestamp');
-                console.log(requiredDate, 'requiredDate');
-
-                console.log(message.id, 'message.id');
-                console.log(fixedMessageId, 'fixedMessageId');
-
                 if (
                   userExists &&
                   +message.createdTimestamp >= +requiredDate &&
@@ -127,14 +119,14 @@ export default class GetPastMessagesService {
         await this.messageBulkWriter.write(allMessagesToSave);
         await this.messageBulkWriter.end();
 
-        // for (const message of _.uniqBy(allMessagesToSave, 'userId')) {
-        //   await this.delegateStatUpdateProducerService.produce({
-        //     dao: message.daoName,
-        //     publicAddress,
-        //     reason,
-        //     timestamp: message.messageCreatedAt
-        //   });
-        // }
+        for (const message of _.uniqBy(allMessagesToSave, 'userId')) {
+          await this.delegateStatUpdateProducerService.produce({
+            dao: message.daoName,
+            publicAddress,
+            reason,
+            timestamp: message.messageCreatedAt
+          });
+        }
       }
     } catch (err) {
       console.log('error: ', err);

@@ -19,7 +19,7 @@ process.on('unhandledRejection', onError);
 if (process.env.TZ !== 'UTC') throw new Error('TZ=UTC not set');
 if (!process.env.NODE_ENV) throw new Error('NODE_ENV not set');
 
-const allCommands = [Object(commandModules)];
+const allCommands = Object(commandModules);
 
 const client = new Client({
   intents: [Intents.FLAGS.GUILDS, Intents.FLAGS.DIRECT_MESSAGES]
@@ -40,8 +40,7 @@ client.on('interactionCreate', async (interaction: CustomInteraction) => {
     return interaction.reply('This command does not exist');
   }
   const { commandName } = interaction;
-
-  const command = allCommands.find((item) => item.data.name === commandName);
+  const command = allCommands[commandName];
 
   if (!command) return;
   try {
