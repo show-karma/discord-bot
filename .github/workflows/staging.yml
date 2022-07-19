@@ -132,8 +132,8 @@ jobs:
       id: task-def-delegate
       uses: aws-actions/amazon-ecs-render-task-definition@v1
       with:
-        task-definition: task-definition.json
-        container-name: ${{ env.ECS_CONTAINER_DELEGATE  }}
+        task-definition: task-definition-delegate.json
+        container-name: ${{ env.ECS_CONTAINER_DELEGATE }}
         image: ${{ steps.build-image.outputs.image }}
 
     - name: Deploy Amazon ECS task definition
