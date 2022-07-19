@@ -2,12 +2,14 @@
 import { AwsSqsService } from '../../aws-sqs/aws-sqs.service';
 import { DiscordSQSMessage } from 'src/@types/discord-message-update';
 import GetPastMessagesService from '../get-messages.service';
+
 const LOG_CTX = 'DelegateStatUpdateConsumerService';
 
 export class DiscordMessageConsumerService {
   constructor(
     private readonly sqs = new AwsSqsService({
-      queueUrl: process.env.AWS_SQS_DISCORD_DELEGATE_MESSAGE_UPDATE_URL
+      region: process.env.AWS_REGION,
+      queueUrl: process.env.AWS_SQS_DELEGATE_DISCORD_MESSAGE_STAT_UPDATE_URL
     })
   ) {}
 

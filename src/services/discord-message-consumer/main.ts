@@ -3,10 +3,10 @@ import { DiscordMessageConsumerService } from './discord-message-consumer.servic
 import dotenv from 'dotenv';
 dotenv.config();
 
-const LOG_CTX = 'delegate-stat-update-consumer-main';
+const LOG_CTX = 'delegate-discord-message-update-consumer-main';
 
 function onError(err: Error) {
-  console.log(err, err.stack, LOG_CTX);
+  console.log(err, LOG_CTX);
   process.exit(1);
 }
 
