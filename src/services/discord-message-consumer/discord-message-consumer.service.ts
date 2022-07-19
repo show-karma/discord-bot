@@ -27,6 +27,8 @@ export class DiscordMessageConsumerService {
           if (parsedMessage.daos) {
             console.log(parsedMessage);
             await new GetPastMessagesService().getMessages(parsedMessage);
+          } else {
+            console.log('no daos');
           }
 
           console.log(`Time [${Date.now() - startTime}]`, LOG_CTX);
