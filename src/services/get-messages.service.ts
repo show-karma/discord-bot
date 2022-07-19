@@ -7,6 +7,9 @@ import dotenv from 'dotenv';
 import { LastMessageIdGetterService } from './last-message-id-getter.service';
 import { MessageBulkWriter } from './message-bulk-writer';
 import { DiscordSQSMessage } from '../@types/discord-message-update';
+import _ from 'lodash';
+import { DelegateStatUpdateProducerService } from './delegate-stat-update-producer/delegate-stat-update-producer.service';
+
 dotenv.config();
 
 interface MessageCustom {
@@ -18,7 +21,8 @@ interface MessageCustom {
 export default class GetPastMessagesService {
   constructor(
     private readonly getMessageService = new LastMessageIdGetterService(),
-    private readonly messageBulkWriter = new MessageBulkWriter()
+    private readonly messageBulkWriter = new MessageBulkWriter(),
+    private readonly delegateStatUpdateProducerService = new DelegateStatUpdateProducerService()
   ) {}
 
   // eslint-disable-next-line max-lines-per-function
@@ -122,6 +126,15 @@ export default class GetPastMessagesService {
       if (allMessagesToSave.length > 0) {
         await this.messageBulkWriter.write(allMessagesToSave);
         await this.messageBulkWriter.end();
+
+        // for (const message of _.uniqBy(allMessagesToSave, 'userId')) {
+        //   await this.delegateStatUpdateProducerService.produce({
+        //     dao: message.daoName,
+        //     publicAddress,
+        //     reason,
+        //     timestamp: message.messageCreatedAt
+        //   });
+        // }
       }
     } catch (err) {
       console.log('error: ', err);
