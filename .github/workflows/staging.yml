@@ -146,11 +146,11 @@ jobs:
     
     - name: Check deployed revision
       run: |
-        bash deploy/check_service_revision.sh `expr ${{ steps.download-task.outputs.revision }} + 1` ${{ env.ECS_SERVICE_DELEGATE }} ${{ env.ECS_CLUSTER }}
+        bash deploy/check_service_revision.sh `expr ${{ steps.download-task-delegate.outputs.revision }} + 1` ${{ env.ECS_SERVICE_DELEGATE }} ${{ env.ECS_CLUSTER }}
 
     - name: Deregister previous revision
       run: |
-        aws ecs deregister-task-definition --task-definition ${{ env.ECS_CONTAINER_DELEGATE }}:${{ steps.download-task.outputs.revision }} >> /dev/null
+        aws ecs deregister-task-definition --task-definition ${{ env.ECS_CONTAINER_DELEGATE }}:${{ steps.download-task-delegate.outputs.revision }} >> /dev/null
 
     - name: Discord notification
       uses: sarisia/actions-status-discord@v1
