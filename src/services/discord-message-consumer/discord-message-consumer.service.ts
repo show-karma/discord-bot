@@ -14,6 +14,7 @@ export class DiscordMessageConsumerService {
   ) {}
 
   async run() {
+    console.log('start');
     try {
       while (true) {
         const message = await this.sqs.receiveMessage(20);

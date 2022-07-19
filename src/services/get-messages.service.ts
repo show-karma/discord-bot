@@ -117,8 +117,8 @@ export default class GetPastMessagesService {
       }
     } catch (err) {
       console.log('error: ', err);
+    } finally {
+      client.destroy();
     }
-    // client.destroy();
-    // process.exit(1);
   }
 }
