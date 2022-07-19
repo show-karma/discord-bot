@@ -1,12 +1,12 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable no-console */
 import { Client, Intents } from 'discord.js';
-import UserRepository from '../repos/user-repo';
-import DaoRepository from '../repos/dao-repo';
 import { delay } from '../utils/delay';
 import dotenv from 'dotenv';
 import { LastMessageIdGetterService } from './last-message-id-getter.service';
 import { MessageBulkWriter } from './message-bulk-writer';
+import { DiscordSQSMessage } from '../@types/discord-message-update';
 dotenv.config();
 
 interface MessageCustom {
@@ -17,14 +17,12 @@ interface MessageCustom {
 
 export default class GetPastMessagesService {
   constructor(
-    private readonly userRepository = new UserRepository(),
-    private readonly daoRepository = new DaoRepository(),
     private readonly getMessageService = new LastMessageIdGetterService(),
     private readonly messageBulkWriter = new MessageBulkWriter()
   ) {}
 
   // eslint-disable-next-line max-lines-per-function
-  async getMessages(discordId?: string, guildIds?: string | string[]) {
+  async getMessages({ reason, publicAddress, discordId, daos, timestamp }: DiscordSQSMessage) {
     const client = new Client({
       intents: [Intents.FLAGS.GUILDS, Intents.FLAGS.DIRECT_MESSAGES]
     });
@@ -42,20 +40,17 @@ export default class GetPastMessagesService {
 
     try {
       const allBotGuilds = Array.from(await client.guilds.fetch());
-      const allUsers = await this.userRepository.getUsersWithDiscordHandle(discordId);
-
-      const allGuilds = guildIds?.length
-        ? guildIds
-        : (await this.daoRepository.getDaoWithDiscordGuildId()).map((dao) => dao.discordGuildId);
+      const allUsers = [discordId].flat();
+      const allGuilds = daos;
       const allMessagesToSave = [];
-      if (!allGuilds.length || !allUsers.length) {
-        throw new Error('Daos or Users are empty');
+      if (!allGuilds.length) {
+        throw new Error('Daos are empty');
       }
 
       for (const guild of allGuilds) {
-        if (!allBotGuilds.find((item) => item[0] === guild)) continue;
+        if (!allBotGuilds.find((item) => +item[0] === +guild.guildId)) continue;
 
-        const channels = (await client.guilds.fetch(guild)).channels.cache;
+        const channels = (await client.guilds.fetch(guild.guildId)).channels.cache;
         const textChannels = [];
         [...channels].map((channel) => {
           if (channel[1].name && channel[1].id && channel[1].type === 'GUILD_TEXT') {
@@ -67,7 +62,10 @@ export default class GetPastMessagesService {
         });
 
         for (const channel of textChannels) {
-          const fixedMessageId = await this.getMessageService.getLastMessageId(guild, channel.id);
+          const fixedMessageId = await this.getMessageService.getLastMessageId(
+            guild.guildId,
+            channel.id
+          );
           let pointerMessage = undefined;
           let flagTimeRangeContinue = true;
           do {
@@ -81,12 +79,11 @@ export default class GetPastMessagesService {
 
             messagesToArray.length &&
               messages.map((message: MessageCustom) => {
-                const userExists = allUsers.find(
-                  (user) => user.discordHandle === message.author.id
-                );
+                const userExists = allUsers.find((user) => +user === +message.author.id);
                 if (+message.createdTimestamp <= +requiredDate) {
                   flagTimeRangeContinue = false;
                 }
+
                 if (
                   userExists &&
                   +message.createdTimestamp >= +requiredDate &&
@@ -95,9 +92,10 @@ export default class GetPastMessagesService {
                   allMessagesToSave.push({
                     messageCreatedAt: new Date(message.createdTimestamp),
                     messageId: message.id,
-                    guildId: guild,
+                    guildId: guild.guildId,
+                    daoName: guild.name,
                     channelId: channel.id,
-                    userId: userExists.id
+                    userId: message.author.id
                   });
                 }
               });
@@ -114,7 +112,7 @@ export default class GetPastMessagesService {
     } catch (err) {
       console.log('error: ', err);
     }
-    client.destroy();
-    process.exit(1);
+    // client.destroy();
+    // process.exit(1);
   }
 }

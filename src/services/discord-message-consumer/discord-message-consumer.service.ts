@@ -7,7 +7,6 @@ const LOG_CTX = 'DelegateStatUpdateConsumerService';
 export class DiscordMessageConsumerService {
   constructor(
     private readonly sqs = new AwsSqsService({
-      region: process.env.AWS_SQS_DISCORD_DELEGATE_MESSAGE_UPDATE_REGION,
       queueUrl: process.env.AWS_SQS_DISCORD_DELEGATE_MESSAGE_UPDATE_URL
     })
   ) {}
@@ -23,12 +22,11 @@ export class DiscordMessageConsumerService {
           const parsedMessage = JSON.parse(message.message) as DiscordSQSMessage;
 
           console.log(`[${message.messageId}][${JSON.stringify(parsedMessage)}]`, LOG_CTX);
-          if (parsedMessage.discordId && parsedMessage.discordId)
-            await new GetPastMessagesService().getMessages(
-              parsedMessage.discordId,
-              parsedMessage.guildIds
-            );
-          console.log(`Cache cleaned`, LOG_CTX);
+          if (parsedMessage.daos) {
+            console.log(parsedMessage);
+            await new GetPastMessagesService().getMessages(parsedMessage);
+          }
+
           console.log(`Time [${Date.now() - startTime}]`, LOG_CTX);
         }
       }
