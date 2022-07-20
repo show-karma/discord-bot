@@ -1,0 +1,158 @@
+on: 
+  push:
+    branches:
+      - production
+  
+name: Production
+
+env:
+  ECS_CONTAINER_MAIN       : discord-bot-production
+  ECS_SERVICE_MAIN         : discord-bot-production-service
+  ECS_CLUSTER              : karma-production
+  ECR_REPOSITORY_MAIN      : production-karma-discord-bot
+  ECS_CONTAINER_DELEGATE   : delegate-discord-message-update-stat-production
+  ECS_SERVICE_DELEGATE     : delegate-discord-message-update-stat-production-service
+
+jobs:
+  deploy:
+    name: Deploy to ECS
+    if: |
+      !failure() && !cancelled()
+    runs-on: ubuntu-latest
+
+    steps:
+        
+    - name: Checkout
+      uses: actions/checkout@v2
+
+    - name: Set up Docker Buildx
+      id: buildx
+      uses: docker/setup-buildx-action@master
+      with:
+        install: true
+
+    - name: Configure AWS credentials
+      uses: aws-actions/configure-aws-credentials@v1
+      with:
+        aws-access-key-id: ${{ secrets.PRODUCTION_AWS_ACCESS_KEY_ID }}
+        aws-secret-access-key: ${{ secrets.PRODUCTION_AWS_SECRET_ACCESS_KEY }}
+        aws-region: us-east-1
+
+    - name: Get .env and certs from Secret Manager
+      run: |
+        aws secretsmanager get-secret-value --secret-id production/env --query SecretString --output text >> .env
+
+    - name: Login to Amazon ECR
+      id: login-ecr
+      uses: aws-actions/amazon-ecr-login@v1
+
+    - name: Cache Docker layers
+      uses: actions/cache@v3
+      with:
+        path: /tmp/.buildx-cache
+         # Key is named differently to avoid collision
+        key: ${{ runner.os }}-buildx-${{ github.sha }}
+        restore-keys: |
+          ${{ runner.os }}-buildx
+
+    - name: Build image
+      uses: docker/build-push-action@v3
+      env:
+        ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+        ECR_REPOSITORY: ${{ env.ECR_REPOSITORY_MAIN }}
+        IMAGE_TAG: ${{ github.sha }}
+      with:
+        context: .
+        builder: ${{ steps.buildx.outputs.name }}
+        file: Dockerfile
+        push: true
+        tags: |
+          ${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY_MAIN }}:${{ github.sha }}
+          ${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY_MAIN }}:latest
+        cache-from: type=local,src=/tmp/.buildx-cache
+        # Note the mode=max here
+        # More: https://github.com/moby/buildkit#--export-cache-options
+        # And: https://github.com/docker/buildx#--cache-tonametypetypekeyvalue
+        cache-to: type=local,mode=max,dest=/tmp/.buildx-cache-new  
+    - name: Move cache
+      # Temp fix
+      # https://github.com/docker/build-push-action/issues/252
+      # https://github.com/moby/buildkit/issues/1896
+      run: |
+        rm -rf /tmp/.buildx-cache
+        mv /tmp/.buildx-cache-new /tmp/.buildx-cache
+
+    - name: Build, tag, and push image to Amazon ECR
+      id: build-image
+      env:
+        ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+        ECR_REPOSITORY: ${{ env.ECR_REPOSITORY_MAIN }}
+        IMAGE_TAG: ${{ github.sha }}
+      run: |
+        echo "::set-output name=image::$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG"
+
+    - name: Download task definition
+      id: download-task
+      run: |
+        aws ecs describe-task-definition --task-definition  ${{ env.ECS_CONTAINER_MAIN }} --query taskDefinition > task-definition.json
+        echo "::set-output name=revision::$(cat task-definition.json | jq .revision)"
+        
+    - name: Fill in the new image ID in the Amazon ECS task definition
+      id: task-def
+      uses: aws-actions/amazon-ecs-render-task-definition@v1
+      with:
+        task-definition: task-definition.json
+        container-name: ${{ env.ECS_CONTAINER_MAIN }}
+        image: ${{ steps.build-image.outputs.image }}
+
+    - name: Deploy Amazon ECS task definition
+      uses: aws-actions/amazon-ecs-deploy-task-definition@v1
+      with:
+        task-definition: ${{ steps.task-def.outputs.task-definition }}
+        service: ${{ env.ECS_SERVICE_MAIN }}
+        cluster: ${{ env.ECS_CLUSTER }}
+        wait-for-service-stability: true
+    
+    - name: Check deployed revision
+      run: |
+        bash deploy/check_service_revision.sh `expr ${{ steps.download-task.outputs.revision }} + 1` ${{ env.ECS_SERVICE_MAIN }} ${{ env.ECS_CLUSTER }}
+
+    - name: Deregister previous revision
+      run: |
+        aws ecs deregister-task-definition --task-definition ${{ env.ECS_CONTAINER_MAIN }}:${{ steps.download-task.outputs.revision }} >> /dev/null
+
+    - name: Download task definition for delegate
+      id: download-task-delegate
+      run: |
+        aws ecs describe-task-definition --task-definition  ${{ env.ECS_CONTAINER_DELEGATE }} --query taskDefinition > task-definition-delegate.json
+        echo "::set-output name=revision::$(cat task-definition-delegate.json | jq .revision)"
+        
+    - name: Fill in the new image ID in the Amazon ECS task definition
+      id: task-def-delegate
+      uses: aws-actions/amazon-ecs-render-task-definition@v1
+      with:
+        task-definition: task-definition-delegate.json
+        container-name: ${{ env.ECS_CONTAINER_DELEGATE }}
+        image: ${{ steps.build-image.outputs.image }}
+
+    - name: Deploy Amazon ECS task definition
+      uses: aws-actions/amazon-ecs-deploy-task-definition@v1
+      with:
+        task-definition: ${{ steps.task-def-delegate.outputs.task-definition }}
+        service: ${{ env.ECS_SERVICE_DELEGATE  }}
+        cluster: ${{ env.ECS_CLUSTER }}
+        wait-for-service-stability: true
+    
+    - name: Check deployed revision
+      run: |
+        bash deploy/check_service_revision.sh `expr ${{ steps.download-task-delegate.outputs.revision }} + 1` ${{ env.ECS_SERVICE_DELEGATE }} ${{ env.ECS_CLUSTER }}
+
+    - name: Deregister previous revision
+      run: |
+        aws ecs deregister-task-definition --task-definition ${{ env.ECS_CONTAINER_DELEGATE }}:${{ steps.download-task-delegate.outputs.revision }} >> /dev/null
+
+    - name: Discord notification
+      uses: sarisia/actions-status-discord@v1
+      if: always()
+      with:
+        webhook: ${{ secrets.DISCORD_WEBHOOK }}
