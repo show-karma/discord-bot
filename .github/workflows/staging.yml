@@ -11,6 +11,8 @@ env:
   ECS_SERVICE_MAIN         : discord-bot-staging-service
   ECS_CLUSTER              : karma-staging
   ECR_REPOSITORY_MAIN      : staging-karma-discord-bot
+  ECS_CONTAINER_DELEGATE   : delegate-discord-message-update-stat-staging
+  ECS_SERVICE_DELEGATE     : delegate-discord-message-update-stat-staging-service
 
 jobs:
   deploy:
@@ -119,6 +121,36 @@ jobs:
     - name: Deregister previous revision
       run: |
         aws ecs deregister-task-definition --task-definition ${{ env.ECS_CONTAINER_MAIN }}:${{ steps.download-task.outputs.revision }} >> /dev/null
+
+    - name: Download task definition for delegate
+      id: download-task-delegate
+      run: |
+        aws ecs describe-task-definition --task-definition  ${{ env.ECS_CONTAINER_DELEGATE }} --query taskDefinition > task-definition-delegate.json
+        echo "::set-output name=revision::$(cat task-definition-delegate.json | jq .revision)"
+        
+    - name: Fill in the new image ID in the Amazon ECS task definition
+      id: task-def-delegate
+      uses: aws-actions/amazon-ecs-render-task-definition@v1
+      with:
+        task-definition: task-definition-delegate.json
+        container-name: ${{ env.ECS_CONTAINER_DELEGATE }}
+        image: ${{ steps.build-image.outputs.image }}
+
+    - name: Deploy Amazon ECS task definition
+      uses: aws-actions/amazon-ecs-deploy-task-definition@v1
+      with:
+        task-definition: ${{ steps.task-def-delegate.outputs.task-definition }}
+        service: ${{ env.ECS_SERVICE_DELEGATE  }}
+        cluster: ${{ env.ECS_CLUSTER }}
+        wait-for-service-stability: true
+    
+    - name: Check deployed revision
+      run: |
+        bash deploy/check_service_revision.sh `expr ${{ steps.download-task-delegate.outputs.revision }} + 1` ${{ env.ECS_SERVICE_DELEGATE }} ${{ env.ECS_CLUSTER }}
+
+    - name: Deregister previous revision
+      run: |
+        aws ecs deregister-task-definition --task-definition ${{ env.ECS_CONTAINER_DELEGATE }}:${{ steps.download-task-delegate.outputs.revision }} >> /dev/null
 
     - name: Discord notification
       uses: sarisia/actions-status-discord@v1
