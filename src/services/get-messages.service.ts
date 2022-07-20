@@ -14,7 +14,7 @@ dotenv.config();
 
 interface MessageCustom {
   id: string;
-  createdTimestamp: string;
+  createdTimestamp: number;
   author: { id: string };
 }
 
@@ -124,7 +124,7 @@ export default class GetPastMessagesService {
             dao: message.daoName,
             publicAddress,
             reason,
-            timestamp: message.messageCreatedAt
+            timestamp: Date.now()
           });
         }
       }
