@@ -6,6 +6,7 @@ const LOG_CTX = 'DelegateStatUpdateProducerService';
 export class DelegateStatUpdateProducerService {
   constructor(
     private readonly sqs = new AwsSqsService({
+      region: process.env.AWS_REGION,
       queueUrl: process.env.AWS_SQS_DELEGATE_STAT_UPDATE_URL
     })
   ) {}

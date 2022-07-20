@@ -1,15 +1,11 @@
 import { REST } from '@discordjs/rest';
 import { Routes } from 'discord-api-types/v9';
-import * as commandModules from './commands/index';
+import * as karmaCommands from './commands/karma';
 import dotenv from 'dotenv';
 dotenv.config();
 
 export default async function deployCommands(guildId: string) {
-  const commands = [];
-
-  for (const module of Object.values<any>(commandModules)) {
-    commands.push(module.data);
-  }
+  const commands = [karmaCommands.data];
   const rest = new REST({ version: '9' }).setToken(process.env.DISCORD_TOKEN);
 
   rest
@@ -19,3 +15,5 @@ export default async function deployCommands(guildId: string) {
     .then(() => console.log('Successfully registered application commands.'))
     .catch(console.error);
 }
+
+deployCommands('945817642147643433');
