@@ -1,7 +1,7 @@
 /* eslint-disable no-console */
 import { Client, Guild, Intents } from 'discord.js';
 import deployCommands from './deploy-commands';
-import * as commandModules from './commands';
+import * as commandModules from './commands/karma';
 import { CustomInteraction } from './@types/custom-interaction';
 import dotenv from 'dotenv';
 dotenv.config();
@@ -19,7 +19,7 @@ process.on('unhandledRejection', onError);
 if (process.env.TZ !== 'UTC') throw new Error('TZ=UTC not set');
 if (!process.env.NODE_ENV) throw new Error('NODE_ENV not set');
 
-const allCommands = [Object(commandModules)];
+const allCommands = [commandModules];
 
 const client = new Client({
   intents: [Intents.FLAGS.GUILDS, Intents.FLAGS.DIRECT_MESSAGES]
@@ -39,9 +39,9 @@ client.on('interactionCreate', async (interaction: CustomInteraction) => {
   if (!interaction.isCommand()) {
     return interaction.reply('This command does not exist');
   }
-  const { commandName } = interaction;
 
-  const command = allCommands.find((item) => item.data.name === commandName);
+  const { commandName } = interaction;
+  const command = allCommands.find((command) => command.data.name === commandName);
 
   if (!command) return;
   try {
