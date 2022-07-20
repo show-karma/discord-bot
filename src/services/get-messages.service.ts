@@ -120,13 +120,6 @@ export default class GetPastMessagesService {
         await this.messageBulkWriter.end();
 
         for (const message of _.uniqBy(allMessagesToSave, 'userId')) {
-          console.log({
-            dao: message.daoName,
-            publicAddress,
-            reason,
-            timestamp: new Date(message.messageCreatedAt).getTime()
-          });
-
           await this.delegateStatUpdateProducerService.produce({
             dao: message.daoName,
             publicAddress,
