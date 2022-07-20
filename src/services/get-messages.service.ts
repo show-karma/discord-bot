@@ -124,7 +124,7 @@ export default class GetPastMessagesService {
             dao: message.daoName,
             publicAddress,
             reason,
-            timestamp: new Date(message.messageCreatedAt).getTime()
+            timestamp: Date.now()
           });
         }
       }
