@@ -24,8 +24,8 @@ export default async function getDelegateData(interaction: CommandInteraction, u
         Name: ${userData.ensName}
         Address: ${userData.address}
         Delegated votes: ${delegateLifetimeStats.delegatedVotes}
-        On-chain voting percent: ${delegateLifetimeStats.onChainVotesPct}%
-        Off-chain voting percent: ${delegateLifetimeStats.offChainVotesPct}%
+        On-chain voting percent: ${delegateLifetimeStats.onChainVotesPct || 0}%
+        Off-chain voting percent: ${delegateLifetimeStats.offChainVotesPct || 0}%
       `);
       });
     } else {
@@ -45,8 +45,8 @@ export default async function getDelegateData(interaction: CommandInteraction, u
       Name: ${userData.ensName}
       Address: ${userData.address}
       Delegated votes: ${delegateLifetimeStats.delegatedVotes}
-      On-chain voting percent: ${delegateLifetimeStats.onChainVotesPct}%
-      Off-chain voting percent: ${delegateLifetimeStats.offChainVotesPct}%
+      On-chain voting percent: ${delegateLifetimeStats.onChainVotesPct || 0}%
+      Off-chain voting percent: ${delegateLifetimeStats.offChainVotesPct || 0}%
     `;
     }
 
