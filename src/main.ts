@@ -32,6 +32,12 @@ client.on('guildCreate', async (guild: Guild) => {
 });
 
 client.once('ready', async () => {
+  // we can update the commands everytime the bot stats
+  // cuz it only update when added into a new server
+  const clintGuilds = Array.from(await client.guilds.fetch());
+  for (const guild of clintGuilds) {
+    await deployCommands(guild[0]);
+  }
   console.log('Ready');
 });
 
