@@ -26,7 +26,7 @@ export default class GetPastMessagesService {
   ) {}
 
   // eslint-disable-next-line max-lines-per-function
-  async getMessages({ reason, publicAddress, discordId, daos, timestamp }: DiscordSQSMessage) {
+  async getMessages({ reason, publicAddress, discordId, daos, users }: DiscordSQSMessage) {
     const client = new Client({
       intents: [Intents.FLAGS.GUILDS, Intents.FLAGS.DIRECT_MESSAGES]
     });
@@ -44,7 +44,7 @@ export default class GetPastMessagesService {
 
     try {
       const allBotGuilds = Array.from(await client.guilds.fetch());
-      const allUsers = [discordId].flat();
+      const allUsers = [discordId || users].flat();
       const allGuilds = daos;
       const allMessagesToSave = [];
       let messagescount = 0;
@@ -119,13 +119,15 @@ export default class GetPastMessagesService {
         await this.messageBulkWriter.write(allMessagesToSave);
         await this.messageBulkWriter.end();
 
-        for (const message of _.uniqBy(allMessagesToSave, 'userId')) {
-          await this.delegateStatUpdateProducerService.produce({
-            dao: message.daoName,
-            publicAddress,
-            reason,
-            timestamp: Date.now()
-          });
+        if (reason === 'user-discord-link') {
+          for (const message of _.uniqBy(allMessagesToSave, 'userId')) {
+            await this.delegateStatUpdateProducerService.produce({
+              dao: message.daoName,
+              publicAddress,
+              reason,
+              timestamp: Date.now()
+            });
+          }
         }
       }
     } catch (err) {
