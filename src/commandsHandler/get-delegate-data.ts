@@ -1,5 +1,6 @@
 /* eslint-disable no-console */
 import { CommandInteraction, MessageEmbed, User } from 'discord.js';
+import { isEthAddress } from '../utils/is-eth-address';
 import { api } from '../api/index';
 
 export default async function getDelegateData(interaction: CommandInteraction, user: User) {
@@ -9,10 +10,6 @@ export default async function getDelegateData(interaction: CommandInteraction, u
 
   try {
     const userData = await (await api.get(`/user/${address}`)).data.data;
-
-    if (!userData) {
-      return user.send('User not found');
-    }
 
     const finalGuildName = daoName || guildName;
 
@@ -35,7 +32,9 @@ export default async function getDelegateData(interaction: CommandInteraction, u
       const delegate = userData.delegates.find((item) => finalGuildName.includes(item.daoName));
 
       if (!delegate) {
-        return user.send('Delegate not found');
+        return user.send(
+          'No delegate found in DAO associated with this server. Request stats by passing dao name or "all" to get all the stats of this delegate'
+        );
       }
 
       const delegateLifetimeStats = delegate.stats.find((item) => item.period === 'lifetime');
@@ -55,6 +54,13 @@ export default async function getDelegateData(interaction: CommandInteraction, u
     return user.send({ embeds: [userDataMessagemEmbed] });
   } catch (err) {
     console.log(err.response.data.error);
-    return user.send(err.response.data.error.message || 'Something went wrong, please try again');
+    const userNotFoundError =
+      err.response.data.error.message === 'User not found'
+        ? !isEthAddress(address)
+          ? "We couldn't find any contributor with that name"
+          : "We couldn't find any contributor with that address"
+        : 'Something went wrong, please try again';
+
+    return user.send(userNotFoundError);
   }
 }
