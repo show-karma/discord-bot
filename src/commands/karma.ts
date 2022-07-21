@@ -21,9 +21,7 @@ export const data = new SlashCommandBuilder()
       .addStringOption((option) =>
         option.setName('param').setDescription('address, ens name').setRequired(true)
       )
-      .addStringOption((option) =>
-        option.setName('dao').setDescription(`blank: default dao \n dao name \n all `)
-      )
+      .addStringOption((option) => option.setName('dao').setDescription(`daoName or all`))
   );
 
 export async function execute(interaction: CommandInteraction, client: Client) {
