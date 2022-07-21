@@ -32,9 +32,10 @@ export default async function getDelegateData(interaction: CommandInteraction, u
       const delegate = userData.delegates.find((item) => finalGuildName.includes(item.daoName));
 
       if (!delegate) {
-        return user.send(
-          'No delegate found in DAO associated with this server. Request stats by passing dao name or "all" to get all the stats of this delegate'
-        );
+        const delegateNotFoundMessage = daoName
+          ? `We couldn't find a delegate with this address in ${daoName}. Email info@showkarma.xyz if you would like us to index this address`
+          : 'No delegate found in DAO associated with this server. Request stats by passing dao name or "all" to get all the stats of this delegate';
+        return user.send(delegateNotFoundMessage);
       }
 
       const delegateLifetimeStats = delegate.stats.find((item) => item.period === 'lifetime');
