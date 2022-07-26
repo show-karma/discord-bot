@@ -2,6 +2,7 @@
 import { AwsSqsService } from '../../aws-sqs/aws-sqs.service';
 import { DiscordSQSMessage } from 'src/@types/discord-message-update';
 import GetPastMessagesService from '../get-messages.service';
+import { Client, Intents } from 'discord.js';
 
 const LOG_CTX = 'DelegateStatUpdateConsumerService';
 
@@ -10,12 +11,21 @@ export class DiscordMessageConsumerService {
     private readonly sqs = new AwsSqsService({
       region: process.env.AWS_REGION,
       queueUrl: process.env.AWS_SQS_DELEGATE_DISCORD_MESSAGE_STAT_UPDATE_URL
-    })
+    }),
+    private readonly getPastMessagesService = new GetPastMessagesService()
   ) {}
 
   async run() {
-    console.log('start');
     try {
+      const client = new Client({
+        intents: [Intents.FLAGS.GUILDS, Intents.FLAGS.DIRECT_MESSAGES]
+      });
+
+      await client.login(process.env.DISCORD_TOKEN);
+      client.once('ready', async () => {
+        console.log('Ready');
+      });
+
       while (true) {
         const message = await this.sqs.receiveMessage(20);
         if (message) {
@@ -27,7 +37,7 @@ export class DiscordMessageConsumerService {
           console.log(`[${message.messageId}][${JSON.stringify(parsedMessage)}]`, LOG_CTX);
           if (parsedMessage.daos) {
             console.log(parsedMessage);
-            await new GetPastMessagesService().getMessages(parsedMessage);
+            await this.getPastMessagesService.getMessages(client, parsedMessage);
           } else {
             console.log('no daos');
           }
