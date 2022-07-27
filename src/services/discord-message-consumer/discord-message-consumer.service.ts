@@ -24,27 +24,27 @@ export class DiscordMessageConsumerService {
       await client.login(process.env.DISCORD_TOKEN);
       client.once('ready', async () => {
         console.log('Ready');
-      });
 
-      while (true) {
-        const message = await this.sqs.receiveMessage(20);
-        if (message) {
-          const startTime = Date.now();
-          await this.sqs.deleteMessage(message.receiptHandle);
+        while (true) {
+          const message = await this.sqs.receiveMessage(20);
+          if (message) {
+            const startTime = Date.now();
+            await this.sqs.deleteMessage(message.receiptHandle);
 
-          const parsedMessage = JSON.parse(message.message) as DiscordSQSMessage;
+            const parsedMessage = JSON.parse(message.message) as DiscordSQSMessage;
 
-          console.log(`[${message.messageId}][${JSON.stringify(parsedMessage)}]`, LOG_CTX);
-          if (parsedMessage.daos) {
-            console.log(parsedMessage);
-            await this.getPastMessagesService.getMessages(client, parsedMessage);
-          } else {
-            console.log('no daos');
+            console.log(`[${message.messageId}][${JSON.stringify(parsedMessage)}]`, LOG_CTX);
+            if (parsedMessage.daos) {
+              console.log(parsedMessage);
+              await this.getPastMessagesService.getMessages(client, parsedMessage);
+            } else {
+              console.log('no daos');
+            }
+
+            console.log(`Time [${Date.now() - startTime}]`, LOG_CTX);
           }
-
-          console.log(`Time [${Date.now() - startTime}]`, LOG_CTX);
         }
-      }
+      });
     } catch (err) {
       console.error(err, err.stack, LOG_CTX);
       process.exit(1);

@@ -17,7 +17,7 @@ interface TextChannel {
   id: string;
 }
 
-interface DiscordMessage {
+export interface DiscordMessage {
   id: string;
   createdTimestamp: number;
   author: { id: string };
@@ -38,7 +38,12 @@ export default class GetPastMessagesService {
     const channels = (await client.guilds.fetch(guildId)).channels.cache;
     const textChannels: TextChannel[] = [];
     [...channels].map((channel) => {
-      if (channel[1].name && channel[1].id && channel[1].type === 'GUILD_TEXT') {
+      if (
+        channel[1].name &&
+        channel[1].id &&
+        channel[1].type === 'GUILD_TEXT' &&
+        !channel[1].name.includes('karma.bot') // ignore bot reply channels
+      ) {
         textChannels.push({
           name: channel[1].name,
           id: channel[1].id
@@ -147,8 +152,6 @@ export default class GetPastMessagesService {
       }
     } catch (err) {
       console.log('error: ', err);
-    } finally {
-      client.destroy();
     }
   }
 }
