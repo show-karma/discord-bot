@@ -12,6 +12,7 @@ export default async function linkWalletHandler(interaction: CommandInteraction,
   try {
     const encryptedData = new CryptoJsHandler(process.env.DISCORD_BOT_AES256_SECRET).encrypt(
       JSON.stringify({
+        guildId: interaction.guildId,
         discordId: interaction.user.id,
         userAddress: address
       })
