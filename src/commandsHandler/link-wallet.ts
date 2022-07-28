@@ -5,6 +5,8 @@ import { CommandInteraction, User } from 'discord.js';
 
 export default async function linkWalletHandler(interaction: CommandInteraction, user: User) {
   const address = interaction.options.getString('address');
+  const daoName = interaction.options.getString('dao');
+  console.log(daoName || interaction.guildId);
 
   if (!isEthAddress(address)) {
     return await user.send('Invalid eth address!');
@@ -12,7 +14,7 @@ export default async function linkWalletHandler(interaction: CommandInteraction,
   try {
     const encryptedData = new CryptoJsHandler(process.env.DISCORD_BOT_AES256_SECRET).encrypt(
       JSON.stringify({
-        guildId: interaction.guildId,
+        guildId: daoName || interaction.guildId,
         discordId: interaction.user.id,
         userAddress: address
       })

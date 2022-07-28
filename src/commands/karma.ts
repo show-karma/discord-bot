@@ -13,6 +13,7 @@ export const data = new SlashCommandBuilder()
       .addStringOption((option) =>
         option.setName('address').setDescription('Eth address').setRequired(true)
       )
+      .addStringOption((option) => option.setName('dao').setDescription(`Enter daoName to link`))
   )
   .addSubcommand((subcommand) =>
     subcommand
@@ -21,7 +22,9 @@ export const data = new SlashCommandBuilder()
       .addStringOption((option) =>
         option.setName('param').setDescription('address, ens name').setRequired(true)
       )
-      .addStringOption((option) => option.setName('dao').setDescription(`Enter daoName or "all" to get all dao stats`))
+      .addStringOption((option) =>
+        option.setName('dao').setDescription(`Enter daoName or "all" to get all dao stats`)
+      )
   );
 
 export async function execute(interaction: CommandInteraction, client: Client) {
