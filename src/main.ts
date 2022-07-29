@@ -45,10 +45,8 @@ client.on('interactionCreate', async (interaction: CustomInteraction) => {
   if (!interaction.isCommand()) {
     return interaction.reply('This command does not exist');
   }
-
   const { commandName } = interaction;
   const command = allCommands.find((command) => command.data.name === commandName);
-
   if (!command) return;
   try {
     await interaction.deferReply();
