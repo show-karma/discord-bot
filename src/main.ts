@@ -4,6 +4,7 @@ import deployCommands from './deploy-commands';
 import * as commandModules from './commands/karma';
 import { CustomInteraction } from './@types/custom-interaction';
 import dotenv from 'dotenv';
+import ChannelsCleaner from './utils/channels-cleaner';
 dotenv.config();
 
 const LOG_CTX = 'main.ts';
@@ -41,6 +42,8 @@ client.once('ready', async () => {
   console.log('Ready');
 });
 
+const channelCleaner = new ChannelsCleaner();
+
 client.on('interactionCreate', async (interaction: CustomInteraction) => {
   if (!interaction.isCommand()) {
     return interaction.reply('This command does not exist');
@@ -52,7 +55,7 @@ client.on('interactionCreate', async (interaction: CustomInteraction) => {
   if (!command) return;
   try {
     await interaction.deferReply();
-    await command.execute(interaction, client);
+    await command.execute(interaction, client, channelCleaner);
   } catch (error) {
     console.log('Error: ', error.message);
     await interaction.editReply(

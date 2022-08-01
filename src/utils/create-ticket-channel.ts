@@ -1,10 +1,15 @@
-import { Channel } from 'discord.js';
-import Poll from './poll';
+/* eslint-disable @typescript-eslint/no-explicit-any */
+import { Channel, Client, CommandInteraction } from 'discord.js';
+import ChannelsCleaner from './channels-cleaner';
 
-export const createTicketChannel = async (client, interaction) => {
+export const createTicketChannel = async (
+  client: Client,
+  interaction: CommandInteraction,
+  channelsCleaner: ChannelsCleaner
+) => {
   let interactionChannel = client.guilds.cache
     .get(interaction.guildId)
-    .channels.cache.find((channel) => channel.topic == interaction.user.id);
+    .channels.cache.find((channel: any) => channel.topic == interaction.user.id);
 
   if (!interactionChannel) {
     interactionChannel = await interaction.guild.channels.create(
@@ -28,7 +33,7 @@ export const createTicketChannel = async (client, interaction) => {
 
   // method do check the life cycle of a channel
   // delete if the channel is inactive for more 30 min
-  Poll.addChannel(interactionChannel);
+  channelsCleaner.addChannel(interactionChannel);
 
   return <Channel>interactionChannel;
 };
