@@ -10,7 +10,7 @@ export default async function getDelegateData(
   ticketChannel
 ) {
   const { name: guildName } = interaction.guild;
-  const address = interaction.options.getString('param');
+  const address = interaction.options.getString('user');
   const daoName = interaction.options.getString('dao');
 
   try {

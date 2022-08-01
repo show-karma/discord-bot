@@ -3,7 +3,6 @@ import linkWalletHandler from '../commandsHandler/link-wallet';
 import getDelegateData from '../commandsHandler/get-delegate-data';
 import { Client, CommandInteraction } from 'discord.js';
 import { createTicketChannel } from '../utils/create-ticket-channel';
-import ChannelsCleaner from '../utils/channels-cleaner';
 
 export const data = new SlashCommandBuilder()
   .setName('karma')
@@ -28,12 +27,8 @@ export const data = new SlashCommandBuilder()
       )
   );
 
-export async function execute(
-  interaction: CommandInteraction,
-  client: Client,
-  channelCleaner: ChannelsCleaner
-) {
-  const ticketChannel = await createTicketChannel(client, interaction, channelCleaner);
+export async function execute(interaction: CommandInteraction, client: Client) {
+  const ticketChannel = await createTicketChannel(client, interaction);
   switch (interaction.options.getSubcommand()) {
     case 'linkwallet':
       await linkWalletHandler(interaction, ticketChannel);

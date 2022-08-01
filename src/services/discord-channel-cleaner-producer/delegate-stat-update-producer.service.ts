@@ -1,18 +1,18 @@
 /* eslint-disable no-console */
 import { AwsSqsService } from '../../aws-sqs/aws-sqs.service';
-import { DelegateStatUpdateMessage } from '../../@types/delegate-stat-update';
+import { DiscordChannelCleanerMessage } from '../../@types/discord-channel-cleaner';
 
-const LOG_CTX = 'DelegateStatUpdateProducerService';
+const LOG_CTX = 'DiscordChannelCleanerProducerService';
 
-export class DelegateStatUpdateProducerService {
+export class DiscordChannelCleanerProducerService {
   constructor(
     private readonly sqs = new AwsSqsService({
       region: process.env.AWS_REGION,
-      queueUrl: process.env.AWS_SQS_DELEGATE_STAT_UPDATE_URL
+      queueUrl: process.env.AWS_SQS_DISCORD_CHANNEL_CLEANER_URL
     })
   ) {}
 
-  async produce(message: DelegateStatUpdateMessage) {
+  async produce(message: DiscordChannelCleanerMessage) {
     try {
       const meesageId = await this.sqs.sendMessage(JSON.stringify(message));
 

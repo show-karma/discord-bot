@@ -4,7 +4,8 @@ import deployCommands from './deploy-commands';
 import * as commandModules from './commands/karma';
 import { CustomInteraction } from './@types/custom-interaction';
 import dotenv from 'dotenv';
-import ChannelsCleaner from './utils/channels-cleaner';
+import { DiscordChannelCleanerConsumerService } from './services/discord-channel-cleaner-consumer/delegate-stat-update-consumer.service';
+
 dotenv.config();
 
 const LOG_CTX = 'main.ts';
@@ -33,16 +34,17 @@ client.on('guildCreate', async (guild: Guild) => {
 });
 
 client.once('ready', async () => {
+  const discordChannelCleanerConsumerService = new DiscordChannelCleanerConsumerService();
+  discordChannelCleanerConsumerService.run();
   // we can update the commands everytime the bot stats
   // cuz it only update when added into a new server
   const clintGuilds = Array.from(await client.guilds.fetch());
   for (const guild of clintGuilds) {
     await deployCommands(guild[0]);
   }
+
   console.log('Ready');
 });
-
-const channelCleaner = new ChannelsCleaner();
 
 client.on('interactionCreate', async (interaction: CustomInteraction) => {
   if (!interaction.isCommand()) {
@@ -55,11 +57,11 @@ client.on('interactionCreate', async (interaction: CustomInteraction) => {
   if (!command) return;
   try {
     await interaction.deferReply();
-    await command.execute(interaction, client, channelCleaner);
+    await command.execute(interaction, client);
   } catch (error) {
     console.log('Error: ', error.message);
     await interaction.editReply(
-      'There was an error while executing this command, please change your settings to allow dm messages'
+      'There was an error while executing this command, please try again'
     );
   }
 });

@@ -1,12 +1,9 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { Channel, Client, CommandInteraction } from 'discord.js';
-import ChannelsCleaner from './channels-cleaner';
+import { DiscordChannelCleanerProducerService } from '../services/discord-channel-cleaner-producer/delegate-stat-update-producer.service';
 
-export const createTicketChannel = async (
-  client: Client,
-  interaction: CommandInteraction,
-  channelsCleaner: ChannelsCleaner
-) => {
+export const createTicketChannel = async (client: Client, interaction: CommandInteraction) => {
+  const discordChannelCleanerProducerService = new DiscordChannelCleanerProducerService();
   let interactionChannel = client.guilds.cache
     .get(interaction.guildId)
     .channels.cache.find((channel: any) => channel.topic == interaction.user.id);
@@ -29,11 +26,12 @@ export const createTicketChannel = async (
         type: 'GUILD_TEXT'
       }
     );
-  }
 
-  // method do check the life cycle of a channel
-  // delete if the channel is inactive for more 30 min
-  channelsCleaner.addChannel(interactionChannel);
+    await discordChannelCleanerProducerService.produce({
+      channelId: interactionChannel.id,
+      timestamp: Date.now()
+    });
+  }
 
   return <Channel>interactionChannel;
 };
