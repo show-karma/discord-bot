@@ -1,7 +1,7 @@
 /* eslint-disable no-console */
 export default class ChannelsCleaner {
   channels = {};
-  timeToLeave = 1 * 60 * 1000; // 30 min
+  timeToLeave = 30 * 60 * 1000; // 30 min
 
   addChannel(channel) {
     try {
