@@ -15,7 +15,7 @@ export class DiscordChannelCleanerConsumerService {
       queueUrl: process.env.AWS_SQS_DISCORD_CHANNEL_CLEANER_URL
     }),
     private readonly delegateStatUpdateProducerService = new DiscordChannelCleanerProducerService(),
-    private readonly timeToLeave = 1 * 60 * 1000 // 30 min
+    private readonly timeToLeave = 30 * 60 * 1000 // 30 min
   ) {}
 
   async run() {
@@ -58,7 +58,8 @@ export class DiscordChannelCleanerConsumerService {
           console.log(`Time [${Date.now() - startTime}]`, LOG_CTX);
         }
 
-        await delay(this.timeToLeave);
+        // 1 min of delay
+        await delay(60 * 1000);
       }
     } catch (err) {
       console.error(err, err.stack, LOG_CTX);
