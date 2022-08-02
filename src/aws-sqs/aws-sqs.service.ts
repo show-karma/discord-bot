@@ -12,7 +12,7 @@ export class AwsSqsService {
   }
 
   async sendMessage(message: string, delaySeconds?: number): Promise<string> {
-    const delay = delaySeconds ? Math.max(delaySeconds, 900) : -1;
+    const delay = Math.min(delaySeconds, 900) || 0;
     return new Promise((res, rej) => {
       this.sqs.sendMessage(
         {

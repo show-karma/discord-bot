@@ -12,9 +12,9 @@ export class DiscordChannelCleanerProducerService {
     })
   ) {}
 
-  async produce(message: DiscordChannelCleanerMessage) {
+  async produce(message: DiscordChannelCleanerMessage, delaySeconds?: number) {
     try {
-      const meesageId = await this.sqs.sendMessage(JSON.stringify(message), 60);
+      const meesageId = await this.sqs.sendMessage(JSON.stringify(message), delaySeconds);
 
       console.log(`[${meesageId}][${JSON.stringify(message)}]`, LOG_CTX);
     } catch (err) {

@@ -1,4 +1,4 @@
 export interface DiscordChannelCleanerMessage {
   channelId: string;
-  createdAt: number;
+  timestamp: number;
 }

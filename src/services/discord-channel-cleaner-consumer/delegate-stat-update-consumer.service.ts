@@ -30,7 +30,7 @@ export class DiscordChannelCleanerConsumerService {
 
       while (true) {
         const message = await this.sqs.receiveMessage(20);
-        console.log(message);
+
         if (message) {
           const startTime = Date.now();
           await this.sqs.deleteMessage(message.receiptHandle);
@@ -41,14 +41,18 @@ export class DiscordChannelCleanerConsumerService {
 
           console.log(`[${message.messageId}][${JSON.stringify(parsedMessage)}]`, LOG_CTX);
 
-          if (parsedMessage.createdAt + this.timeToLeave > Date.now()) {
-            const lastMessage = await channel.messages.fetch({ limit: 1 });
-            const formattedMessage = (Array.from(lastMessage)[0]['1'] as any) || null;
+          const lastMessage = await channel.messages.fetch({ limit: 1 });
+          const formattedMessage = (Array.from(lastMessage)[0]?.['1'] as any) || null;
+          const lastMassageTime = formattedMessage?.createdTimestamp || parsedMessage.timestamp;
 
-            await this.delegateStatUpdateProducerService.produce({
-              channelId: parsedMessage.channelId,
-              createdAt: +formattedMessage.createdTimestamp || parsedMessage.createdAt
-            });
+          if (lastMassageTime + this.timeToLeave > Date.now()) {
+            await this.delegateStatUpdateProducerService.produce(
+              {
+                channelId: parsedMessage.channelId,
+                timestamp: +lastMassageTime
+              },
+              this.timeToLeave
+            );
           } else {
             if (channel) await channel.delete();
           }
