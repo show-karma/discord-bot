@@ -28,15 +28,17 @@ export class DiscordChannelCleanerConsumerService {
       client.once('ready', async () => {
         console.log('Ready');
       });
+
       while (true) {
         const message = await this.sqs.receiveMessage(20);
+
         if (message) {
           const startTime = Date.now();
           await this.sqs.deleteMessage(message.receiptHandle);
           const parsedMessage = JSON.parse(message.message) as DiscordChannelCleanerMessage;
 
           const channel = (await client.channels.cache.get(parsedMessage.channelId)) as any;
-          if (!channel) return;
+          if (!channel) continue;
 
           console.log(`[${message.messageId}][${JSON.stringify(parsedMessage)}]`, LOG_CTX);
 
@@ -57,9 +59,6 @@ export class DiscordChannelCleanerConsumerService {
 
           console.log(`Time [${Date.now() - startTime}]`, LOG_CTX);
         }
-
-        // 1 min of delay
-        await delay(60 * 1000);
       }
     } catch (err) {
       console.error(err, err.stack, LOG_CTX);
