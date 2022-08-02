@@ -29,7 +29,7 @@ export const createTicketChannel = async (client: Client, interaction: CommandIn
 
     await discordChannelCleanerProducerService.produce({
       channelId: interactionChannel.id,
-      timestamp: Date.now()
+      createdAt: Date.now()
     });
   }
 

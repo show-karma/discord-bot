@@ -14,7 +14,7 @@ export class DiscordChannelCleanerProducerService {
 
   async produce(message: DiscordChannelCleanerMessage) {
     try {
-      const meesageId = await this.sqs.sendMessage(JSON.stringify(message));
+      const meesageId = await this.sqs.sendMessage(JSON.stringify(message), 60);
 
       console.log(`[${meesageId}][${JSON.stringify(message)}]`, LOG_CTX);
     } catch (err) {

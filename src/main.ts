@@ -4,7 +4,6 @@ import deployCommands from './deploy-commands';
 import * as commandModules from './commands/karma';
 import { CustomInteraction } from './@types/custom-interaction';
 import dotenv from 'dotenv';
-import { DiscordChannelCleanerConsumerService } from './services/discord-channel-cleaner-consumer/delegate-stat-update-consumer.service';
 
 dotenv.config();
 
@@ -34,8 +33,6 @@ client.on('guildCreate', async (guild: Guild) => {
 });
 
 client.once('ready', async () => {
-  const discordChannelCleanerConsumerService = new DiscordChannelCleanerConsumerService();
-  discordChannelCleanerConsumerService.run();
   // we can update the commands everytime the bot stats
   // cuz it only update when added into a new server
   const clintGuilds = Array.from(await client.guilds.fetch());
