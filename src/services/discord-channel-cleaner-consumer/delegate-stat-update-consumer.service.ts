@@ -51,7 +51,7 @@ export class DiscordChannelCleanerConsumerService {
                 channelId: parsedMessage.channelId,
                 timestamp: +lastMassageTime
               },
-              this.timeToLeave
+              this.timeToLeave / 1000
             );
           } else {
             if (channel) await channel.delete();
