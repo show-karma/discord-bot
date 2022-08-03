@@ -11,12 +11,14 @@ export class AwsSqsService {
     });
   }
 
-  async sendMessage(message: string): Promise<string> {
+  async sendMessage(message: string, delaySeconds?: number): Promise<string> {
+    const delay = Math.min(delaySeconds, 900) || 0;
     return new Promise((res, rej) => {
       this.sqs.sendMessage(
         {
           QueueUrl: this.options.queueUrl,
-          MessageBody: message
+          MessageBody: message,
+          DelaySeconds: delay
         },
         (err, data) => {
           if (err) rej(err);
