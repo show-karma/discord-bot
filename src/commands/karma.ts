@@ -14,6 +14,7 @@ export const data = new SlashCommandBuilder()
       .addStringOption((option) =>
         option.setName('address').setDescription('Eth address').setRequired(true)
       )
+      .addStringOption((option) => option.setName('dao').setDescription(`Enter daoName to link`))
   )
   .addSubcommand((subcommand) =>
     subcommand
