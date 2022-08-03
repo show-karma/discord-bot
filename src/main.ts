@@ -4,6 +4,7 @@ import deployCommands from './deploy-commands';
 import * as commandModules from './commands/karma';
 import { CustomInteraction } from './@types/custom-interaction';
 import dotenv from 'dotenv';
+
 dotenv.config();
 
 const LOG_CTX = 'main.ts';
@@ -38,6 +39,7 @@ client.once('ready', async () => {
   for (const guild of clintGuilds) {
     await deployCommands(guild[0]);
   }
+
   console.log('Ready');
 });
 
@@ -56,7 +58,7 @@ client.on('interactionCreate', async (interaction: CustomInteraction) => {
   } catch (error) {
     console.log('Error: ', error.message);
     await interaction.editReply(
-      'There was an error while executing this command, please change your settings to allow dm messages'
+      'There was an error while executing this command, please try again'
     );
   }
 });
