@@ -94,7 +94,14 @@ export default class GetPastMessagesService {
       for (const guild of daos) {
         if (!allBotGuilds.find((item) => +item[0] === +guild.guildId)) continue;
 
-        const textChannels = await this.getAllTextChannelsOfAGuild(client, guild.guildId);
+        const formattedGuildChannels = guild.channelIds
+          ? guild.channelIds.map((guild) => ({
+              id: guild
+            }))
+          : null;
+
+        const textChannels =
+          formattedGuildChannels || (await this.getAllTextChannelsOfAGuild(client, guild.guildId));
 
         for (const channel of textChannels) {
           const fixedMessageId = await this.getMessageService.getLastMessageId(
@@ -104,9 +111,10 @@ export default class GetPastMessagesService {
           let pointerMessage = undefined;
           let flagTimeRangeContinue = true;
           do {
-            const messages = await (
-              (await client.channels.cache.get(channel.id)) as any
-            ).messages.fetch({
+            const channelExists = (await client.channels.cache.get(channel.id)) as any;
+            if (!channelExists) continue;
+
+            const messages = await channelExists.messages.fetch({
               before: pointerMessage
             });
 
