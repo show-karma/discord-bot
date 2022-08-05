@@ -21,7 +21,7 @@ export const data = new SlashCommandBuilder()
       .setName('stats')
       .setDescription('get info delegate info using address, forum name or userId')
       .addStringOption((option) =>
-        option.setName('user').setDescription('address, ens name').setRequired(true)
+        option.setName('user').setDescription('Enter address or ens name').setRequired(true)
       )
       .addStringOption((option) =>
         option.setName('dao').setDescription(`Enter daoName or "all" to get all dao stats`)
