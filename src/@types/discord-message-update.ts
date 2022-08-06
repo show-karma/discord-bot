@@ -4,6 +4,10 @@ export interface DiscordSQSMessage {
   users?: string[];
   discordId?: string;
   publicAddress?: string;
-  daos: { name: string; guildId: string }[];
+  daos: {
+    name: string;
+    guildId: string;
+    channelIds: string[];
+  }[];
   timestamp: number;
 }
