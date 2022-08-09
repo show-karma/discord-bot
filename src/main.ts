@@ -28,7 +28,12 @@ const client = new Client({
 
 client.on('guildCreate', async (guild: Guild) => {
   if (guild) {
-    await deployCommands(guild.id);
+    try {
+      await deployCommands(guild.id);
+      console.log('Successfully registered application commands.');
+    } catch (err) {
+      console.log(err);
+    }
   }
 });
 
