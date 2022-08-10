@@ -3,6 +3,7 @@ import { AwsSqsService } from '../../aws-sqs/aws-sqs.service';
 import { DiscordSQSMessage } from 'src/@types/discord-message-update';
 import GetPastMessagesService from '../get-messages.service';
 import { Client, Intents } from 'discord.js';
+import { SentryService } from '../../sentry/sentry.service';
 
 const LOG_CTX = 'DelegateStatUpdateConsumerService';
 
@@ -12,10 +13,12 @@ export class DiscordMessageConsumerService {
       region: process.env.AWS_REGION,
       queueUrl: process.env.AWS_SQS_DELEGATE_DISCORD_MESSAGE_STAT_UPDATE_URL
     }),
-    private readonly getPastMessagesService = new GetPastMessagesService()
+    private readonly getPastMessagesService = new GetPastMessagesService(),
+    private readonly sentryService = new SentryService()
   ) {}
 
   async run() {
+    let parsedMessage = {} as DiscordSQSMessage;
     try {
       const client = new Client({
         intents: [Intents.FLAGS.GUILDS, Intents.FLAGS.DIRECT_MESSAGES]
@@ -31,7 +34,7 @@ export class DiscordMessageConsumerService {
             const startTime = Date.now();
             await this.sqs.deleteMessage(message.receiptHandle);
 
-            const parsedMessage = JSON.parse(message.message) as DiscordSQSMessage;
+            parsedMessage = JSON.parse(message.message) as DiscordSQSMessage;
 
             console.log(`[${message.messageId}][${JSON.stringify(parsedMessage)}]`, LOG_CTX);
             if (parsedMessage.daos) {
@@ -47,6 +50,21 @@ export class DiscordMessageConsumerService {
       });
     } catch (err) {
       console.error(err, err.stack, LOG_CTX);
+      this.sentryService.logError(
+        err,
+        {
+          service: 'discord:message:consumer'
+        },
+        {
+          info: {
+            reason: parsedMessage.reason,
+            publicAddress: parsedMessage.publicAddress,
+            discordId: parsedMessage.discordId,
+            users: parsedMessage.users,
+            daos: parsedMessage.daos
+          }
+        }
+      );
       process.exit(1);
     }
   }
