@@ -13,7 +13,7 @@ export default async function getDelegateData(
 ) {
   try {
     const userData = await (await api.get(`/user/${address}`)).data.data;
-
+    console.log(userData);
     const finalGuildName = daoName || guildName;
 
     let message = `<@!${userId}> \n`;
