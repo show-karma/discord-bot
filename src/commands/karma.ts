@@ -1,7 +1,7 @@
 import { SlashCommandBuilder } from '@discordjs/builders';
 import linkWalletHandler from '../commandsHandler/link-wallet';
 import getDelegateData from '../commandsHandler/get-delegate-data';
-import { Client, CommandInteraction } from 'discord.js';
+import { Client, CommandInteraction, TextChannel } from 'discord.js';
 import { createTicketChannel } from '../utils/create-ticket-channel';
 
 export const data = new SlashCommandBuilder()
@@ -29,13 +29,19 @@ export const data = new SlashCommandBuilder()
   );
 
 export async function execute(interaction: CommandInteraction, client: Client) {
-  const ticketChannel = await createTicketChannel(client, interaction);
+  const ticketChannel = (await createTicketChannel(client, interaction)) as TextChannel;
   switch (interaction.options.getSubcommand()) {
     case 'linkwallet':
-      await linkWalletHandler(interaction, ticketChannel);
+      const addressWallet = interaction.options.getString('address');
+      const daoNameWallet = interaction.options.getString('dao') || interaction.guildId;
+      await linkWalletHandler(addressWallet, daoNameWallet, interaction.user.id, ticketChannel);
       break;
     case 'stats':
-      await getDelegateData(interaction, ticketChannel);
+      const addressStats = interaction.options.getString('user');
+      const daoNameStats = interaction.options.getString('dao');
+      const guildNameStats = interaction.guild.name;
+      const userIdStats = interaction.user.id;
+      await getDelegateData(addressStats, daoNameStats, guildNameStats, userIdStats, ticketChannel);
       break;
     default:
       await interaction.editReply('This command does not exist');

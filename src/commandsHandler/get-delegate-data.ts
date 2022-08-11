@@ -1,21 +1,22 @@
 /* eslint-disable @typescript-eslint/no-unsafe-return */
 /* eslint-disable no-console */
-import { CommandInteraction, MessageEmbed } from 'discord.js';
+import { MessageEmbed, TextChannel } from 'discord.js';
 import { isEthAddress } from '../utils/is-eth-address';
 import { api } from '../api/index';
 
-export default async function getDelegateData(interaction: CommandInteraction, ticketChannel) {
-  console.log(interaction);
-  const { name: guildName } = interaction.guild;
-  const address = interaction.options.getString('user');
-  const daoName = interaction.options.getString('dao');
-
+export default async function getDelegateData(
+  address: string,
+  daoName: string,
+  guildName: string,
+  userId: string,
+  ticketChannel: TextChannel
+) {
   try {
     const userData = await (await api.get(`/user/${address}`)).data.data;
 
     const finalGuildName = daoName || guildName;
 
-    let message = `<@!${interaction.user.id}> \n`;
+    let message = `<@!${userId}> \n`;
 
     if (daoName && daoName.toLowerCase() === 'all') {
       userData.delegates.map((delegate) => {
