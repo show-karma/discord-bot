@@ -32,50 +32,54 @@ export class DiscordChannelCleanerConsumerService {
       });
 
       while (true) {
-        const message = await this.sqs.receiveMessage(20);
+        try {
+          const message = await this.sqs.receiveMessage(20);
 
-        if (message) {
-          const startTime = Date.now();
-          await this.sqs.deleteMessage(message.receiptHandle);
-          parsedMessage = JSON.parse(message.message) as DiscordChannelCleanerMessage;
+          if (message) {
+            const startTime = Date.now();
+            await this.sqs.deleteMessage(message.receiptHandle);
+            parsedMessage = JSON.parse(message.message) as DiscordChannelCleanerMessage;
 
-          const channel = (await client.channels.cache.get(parsedMessage.channelId)) as any;
-          if (!channel) continue;
+            const channel = (await client.channels.cache.get(parsedMessage.channelId)) as any;
+            if (!channel) continue;
 
-          console.log(`[${message.messageId}][${JSON.stringify(parsedMessage)}]`, LOG_CTX);
+            console.log(`[${message.messageId}][${JSON.stringify(parsedMessage)}]`, LOG_CTX);
 
-          const lastMessage = await channel.messages.fetch({ limit: 1 });
-          const formattedMessage = (Array.from(lastMessage)[0]?.['1'] as any) || null;
-          const lastMassageTime = formattedMessage?.createdTimestamp || parsedMessage.timestamp;
+            const lastMessage = await channel.messages.fetch({ limit: 1 });
+            const formattedMessage = (Array.from(lastMessage)[0]?.['1'] as any) || null;
+            const lastMassageTime = formattedMessage?.createdTimestamp || parsedMessage.timestamp;
 
-          if (lastMassageTime + this.timeToLeave > Date.now()) {
-            await this.delegateStatUpdateProducerService.produce(
-              {
-                channelId: parsedMessage.channelId,
-                timestamp: +lastMassageTime
-              },
-              this.timeToLeave / 1000
-            );
-          } else {
-            if (channel) await channel.delete();
+            if (lastMassageTime + this.timeToLeave > Date.now()) {
+              await this.delegateStatUpdateProducerService.produce(
+                {
+                  channelId: parsedMessage.channelId,
+                  timestamp: +lastMassageTime
+                },
+                this.timeToLeave / 1000
+              );
+            } else {
+              if (channel) await channel.delete();
+            }
+
+            console.log(`Time [${Date.now() - startTime}]`, LOG_CTX);
           }
-
-          console.log(`Time [${Date.now() - startTime}]`, LOG_CTX);
+        } catch (err) {
+          this.sentryService.logError(
+            err,
+            {
+              service: 'discord:delete:channel'
+            },
+            {
+              info: {
+                channelId: parsedMessage.channelId
+              }
+            }
+          );
         }
       }
     } catch (err) {
       console.error(err, err.stack, LOG_CTX);
-      this.sentryService.logError(
-        err,
-        {
-          service: 'discord:delete:channel'
-        },
-        {
-          info: {
-            channelId: parsedMessage.channelId
-          }
-        }
-      );
+
       process.exit(1);
     }
   }
