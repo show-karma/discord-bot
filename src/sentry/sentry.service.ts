@@ -19,8 +19,4 @@ export class SentryService {
       contexts
     });
   }
-
-  async onApplicationShutdown() {
-    await Sentry.flush(5000);
-  }
 }
