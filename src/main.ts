@@ -42,7 +42,11 @@ client.once('ready', async () => {
   // cuz it only update when added into a new server
   const clintGuilds = Array.from(await client.guilds.fetch());
   for (const guild of clintGuilds) {
-    await deployCommands(guild[0]);
+    try {
+      await deployCommands(guild[0]);
+    } catch (err) {
+      console.log('Deploy commands error guild: ', guild[0]);
+    }
   }
 
   console.log('Ready');

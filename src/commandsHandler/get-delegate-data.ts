@@ -4,11 +4,8 @@ import { CommandInteraction, MessageEmbed } from 'discord.js';
 import { isEthAddress } from '../utils/is-eth-address';
 import { api } from '../api/index';
 
-export default async function getDelegateData(
-  interaction: CommandInteraction,
-
-  ticketChannel
-) {
+export default async function getDelegateData(interaction: CommandInteraction, ticketChannel) {
+  console.log(interaction);
   const { name: guildName } = interaction.guild;
   const address = interaction.options.getString('user');
   const daoName = interaction.options.getString('dao');
