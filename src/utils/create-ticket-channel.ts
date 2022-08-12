@@ -19,6 +19,10 @@ export const createTicketChannel = async (client: Client, interaction: CommandIn
             allow: ['SEND_MESSAGES', 'VIEW_CHANNEL']
           },
           {
+            id: process.env.DISCORD_APPLICATION_ID,
+            allow: ['SEND_MESSAGES', 'VIEW_CHANNEL']
+          },
+          {
             id: interaction.guild.roles.everyone,
             deny: ['VIEW_CHANNEL']
           }
