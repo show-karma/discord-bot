@@ -18,7 +18,7 @@ export default async function getDelegateData(
 
     const finalGuildName = daoName || guildName;
 
-    let message = `<@!${interaction.user.id}> \n`;
+    let message = ``;
 
     if (daoName && daoName.toLowerCase() === 'all') {
       userData.delegates.map((delegate) => {
@@ -57,7 +57,10 @@ export default async function getDelegateData(
 
     const userDataMessagemEmbed = new MessageEmbed().setDescription(message);
 
-    return ticketChannel.send({ embeds: [userDataMessagemEmbed] });
+    return ticketChannel.send({
+      content: `<@!${interaction.user.id}>`,
+      embeds: [userDataMessagemEmbed]
+    });
   } catch (err) {
     console.log(err.response.data.error);
     const userNotFoundError =
