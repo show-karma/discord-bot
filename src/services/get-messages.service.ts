@@ -107,53 +107,57 @@ export default class GetPastMessagesService {
           formattedGuildChannels || (await this.getAllTextChannelsOfAGuild(client, guild.guildId));
 
         for (const channel of textChannels) {
-          const fixedMessageId = await this.getMessageService.getLastMessageId(
-            guild.guildId,
-            channel.id
-          );
-          let pointerMessage = undefined;
-          let flagToContinue = true;
-          do {
-            const channelExists = (await client.channels.cache.get(channel.id)) as any;
-            if (!channelExists) continue;
+          try {
+            const fixedMessageId = await this.getMessageService.getLastMessageId(
+              guild.guildId,
+              channel.id
+            );
+            let pointerMessage = undefined;
+            let flagToContinue = true;
+            do {
+              const channelExists = (await client.channels.cache.get(channel.id)) as any;
+              if (!channelExists) continue;
 
-            const messages = await channelExists.messages.fetch({
-              before: pointerMessage
-            });
-
-            const messagesToArray = Array.from(messages);
-
-            messagesToArray.length &&
-              messages.map((message: DiscordMessage) => {
-                messagescount += 1;
-                const userExists = allUsers.find((user) => +user === +message.author.id);
-                if (!messages.length || +message.createdTimestamp <= +requiredDate) {
-                  flagToContinue = false;
-                }
-
-                if (
-                  userExists &&
-                  +message.createdTimestamp >= +requiredDate &&
-                  +message.id > +fixedMessageId
-                ) {
-                  allMessagesToSave.push({
-                    messageCreatedAt: new Date(message.createdTimestamp),
-                    messageId: message.id,
-                    guildId: guild.guildId,
-                    daoName: guild.name,
-                    channelId: channel.id,
-                    userId: message.author.id,
-                    messageType: Array.from(message.attachments).length
-                      ? 'attachment'
-                      : messageContainsLink(message.content)
-                      ? 'link'
-                      : 'text'
-                  });
-                }
+              const messages = await channelExists.messages.fetch({
+                before: pointerMessage
               });
 
-            pointerMessage = messagesToArray[messagesToArray.length - 1]?.[0];
-          } while (pointerMessage && pointerMessage > fixedMessageId && flagToContinue);
+              const messagesToArray = Array.from(messages);
+
+              messagesToArray.length &&
+                messages.map((message: DiscordMessage) => {
+                  messagescount += 1;
+                  const userExists = allUsers.find((user) => +user === +message.author.id);
+                  if (!messages.length || +message.createdTimestamp <= +requiredDate) {
+                    flagToContinue = false;
+                  }
+
+                  if (
+                    userExists &&
+                    +message.createdTimestamp >= +requiredDate &&
+                    +message.id > +fixedMessageId
+                  ) {
+                    allMessagesToSave.push({
+                      messageCreatedAt: new Date(message.createdTimestamp),
+                      messageId: message.id,
+                      guildId: guild.guildId,
+                      daoName: guild.name,
+                      channelId: channel.id,
+                      userId: message.author.id,
+                      messageType: Array.from(message.attachments).length
+                        ? 'attachment'
+                        : messageContainsLink(message.content)
+                        ? 'link'
+                        : 'text'
+                    });
+                  }
+                });
+
+              pointerMessage = messagesToArray[messagesToArray.length - 1]?.[0];
+            } while (pointerMessage && pointerMessage > fixedMessageId && flagToContinue);
+          } catch (err) {
+            console.log(err.message, channel);
+          }
         }
       }
 
