@@ -9,6 +9,7 @@ import { Message, MessageBulkWriter } from './message-bulk-writer';
 import { DiscordSQSMessage } from '../@types/discord-message-update';
 import _ from 'lodash';
 import { DelegateStatUpdateProducerService } from './delegate-stat-update-producer/delegate-stat-update-producer.service';
+import { messageContainsLink } from '../utils/messages-contain-link';
 
 dotenv.config();
 
@@ -19,7 +20,9 @@ interface TextChannel {
 
 export interface DiscordMessage {
   id: string;
+  content: string;
   createdTimestamp: number;
+  attachments: unknown[];
   author: { id: string };
 }
 
@@ -109,7 +112,7 @@ export default class GetPastMessagesService {
             channel.id
           );
           let pointerMessage = undefined;
-          let flagTimeRangeContinue = true;
+          let flagToContinue = true;
           do {
             const channelExists = (await client.channels.cache.get(channel.id)) as any;
             if (!channelExists) continue;
@@ -124,8 +127,8 @@ export default class GetPastMessagesService {
               messages.map((message: DiscordMessage) => {
                 messagescount += 1;
                 const userExists = allUsers.find((user) => +user === +message.author.id);
-                if (+message.createdTimestamp <= +requiredDate) {
-                  flagTimeRangeContinue = false;
+                if (!messages.length || +message.createdTimestamp <= +requiredDate) {
+                  flagToContinue = false;
                 }
 
                 if (
@@ -139,13 +142,18 @@ export default class GetPastMessagesService {
                     guildId: guild.guildId,
                     daoName: guild.name,
                     channelId: channel.id,
-                    userId: message.author.id
+                    userId: message.author.id,
+                    messageType: Array.from(message.attachments).length
+                      ? 'attachment'
+                      : messageContainsLink(message.content)
+                      ? 'link'
+                      : 'text'
                   });
                 }
               });
 
             pointerMessage = messagesToArray[messagesToArray.length - 1]?.[0];
-          } while (pointerMessage && pointerMessage > fixedMessageId && flagTimeRangeContinue);
+          } while (pointerMessage && pointerMessage > fixedMessageId && flagToContinue);
         }
       }
 

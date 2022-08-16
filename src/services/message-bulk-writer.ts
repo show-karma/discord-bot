@@ -8,6 +8,7 @@ export interface Message {
   guildId: string;
   channelId: string;
   messageCreatedAt: Date;
+  messageType: string;
 }
 
 export class MessageBulkWriter {
@@ -42,11 +43,11 @@ export class MessageBulkWriter {
         (m) =>
           `('${m.userId}', '${m.messageId}', '${m.guildId}', '${
             m.channelId
-          }', '${m.messageCreatedAt.toISOString()}')`
+          }', '${m.messageCreatedAt.toISOString()}', '${m.messageType}')`
       )
       .join(',');
 
-    const sql = `INSERT INTO "DelegateDiscordMessage" ("userId", "messageId", "guildId", "channelId", "messageCreatedAt") VALUES ${insertValues} ON CONFLICT ("messageId", "userId", "guildId", "channelId") DO NOTHING`;
+    const sql = `INSERT INTO "DelegateDiscordMessage" ("userId", "messageId", "guildId", "channelId", "messageCreatedAt", "messageType") VALUES ${insertValues} ON CONFLICT ("messageId", "userId", "guildId", "channelId") DO NOTHING`;
 
     await pool.query(sql);
   }
