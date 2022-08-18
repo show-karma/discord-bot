@@ -131,6 +131,8 @@ export default class GetPastMessagesService {
           formattedGuildChannels
         );
 
+        console.log(textChannels);
+
         for (const channel of textChannels) {
           try {
             const fixedMessageId = await this.getMessageService.getLastMessageId(
