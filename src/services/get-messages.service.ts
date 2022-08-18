@@ -18,6 +18,7 @@ interface TextChannel {
   name: string;
   id: string;
   type: string;
+  parentId: string;
 }
 
 export interface DiscordMessage {
@@ -57,13 +58,21 @@ export default class GetPastMessagesService {
         textChannels.push({
           name: channel[1].name,
           id: channel[1].id,
-          type: channel[1].type
+          type: channel[1].type,
+          parentId: channel[1].parentId
         });
       }
     });
 
     const filteredChannels = specificChannels
-      ? [...specificChannels, ...textChannels.filter((channel) => channel.type !== 'GUILD_TEXT')]
+      ? [
+          ...specificChannels,
+          ...textChannels.filter(
+            (channel) =>
+              channel.type !== 'GUILD_TEXT' &&
+              specificChannels.find((specificChannel) => specificChannel.id === channel.parentId)
+          )
+        ]
       : textChannels;
 
     return filteredChannels;
