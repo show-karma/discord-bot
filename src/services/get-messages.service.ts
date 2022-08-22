@@ -1,3 +1,4 @@
+/* eslint-disable max-lines-per-function */
 /* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable no-console */
@@ -16,6 +17,8 @@ dotenv.config();
 interface TextChannel {
   name: string;
   id: string;
+  type: string;
+  parentId: string;
 }
 
 export interface DiscordMessage {
@@ -37,23 +40,42 @@ export default class GetPastMessagesService {
     private readonly delegateStatUpdateProducerService = new DelegateStatUpdateProducerService()
   ) {}
 
-  async getAllTextChannelsOfAGuild(client: Client, guildId: string) {
+  async getAllTextChannelsOfAGuild(
+    client: Client,
+    guildId: string,
+    specificChannels: { id: string }[]
+  ) {
     const channels = (await client.guilds.fetch(guildId)).channels.cache;
+    const channelsType = ['GUILD_TEXT', 'GUILD_PUBLIC_THREAD', 'GUILD_PRIVATE_THREAD'];
     const textChannels: TextChannel[] = [];
     [...channels].map((channel) => {
       if (
         channel[1].name &&
         channel[1].id &&
-        channel[1].type === 'GUILD_TEXT' &&
+        channelsType.includes(channel[1].type) &&
         !channel[1].name.includes('karma.bot') // ignore bot reply channels
       ) {
         textChannels.push({
           name: channel[1].name,
-          id: channel[1].id
+          id: channel[1].id,
+          type: channel[1].type,
+          parentId: channel[1].parentId
         });
       }
     });
-    return textChannels;
+
+    const filteredChannels = specificChannels
+      ? [
+          ...specificChannels,
+          ...textChannels.filter(
+            (channel) =>
+              channel.type !== 'GUILD_TEXT' &&
+              specificChannels.find((specificChannel) => specificChannel.id === channel.parentId)
+          )
+        ]
+      : textChannels;
+
+    return filteredChannels;
   }
 
   async insertAllMessages(allMessagesToSave: Message[]) {
@@ -103,8 +125,11 @@ export default class GetPastMessagesService {
             }))
           : null;
 
-        const textChannels =
-          formattedGuildChannels || (await this.getAllTextChannelsOfAGuild(client, guild.guildId));
+        const textChannels = await this.getAllTextChannelsOfAGuild(
+          client,
+          guild.guildId,
+          formattedGuildChannels
+        );
 
         for (const channel of textChannels) {
           try {
