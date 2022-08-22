@@ -60,13 +60,14 @@ export default async function getDelegateData(
       embeds: [userDataMessagemEmbed]
     });
   } catch (err) {
+    console.log(err);
     console.log(err.response.data.error);
-    const userNotFoundError =
-      err.response.data.error.message === 'User not found'
-        ? !isEthAddress(address)
-          ? "We couldn't find any contributor with that name"
-          : "We couldn't find any contributor with that address"
-        : 'Something went wrong, please try again';
+
+    const userNotFoundError = err.response.data.error
+      ? !isEthAddress(address)
+        ? "We couldn't find any contributor with that name"
+        : "We couldn't find any contributor with that address"
+      : 'Something went wrong, please try again';
 
     return ticketChannel.send(userNotFoundError);
   }
