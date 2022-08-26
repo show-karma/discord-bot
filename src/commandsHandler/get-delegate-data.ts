@@ -13,7 +13,7 @@ export default async function getDelegateData(
 ) {
   try {
     const userData = await (await api.get(`/user/${address}`)).data.data;
-    console.log(userData);
+
     const finalGuildName = daoName || guildName;
 
     let message = ``;
@@ -26,7 +26,7 @@ export default async function getDelegateData(
         Dao: ${delegate.daoName}
         Name: ${userData.ensName}
         Address: ${userData.address}
-        Delegated votes: ${delegateLifetimeStats.delegatedVotes}
+        Delegated votes: ${delegateLifetimeStats.delegatedVotes || delegate.delegatedVotes}
         On-chain voting percent: ${delegateLifetimeStats.onChainVotesPct || 0}%
         Off-chain voting percent: ${delegateLifetimeStats.offChainVotesPct || 0}%
       `;
@@ -47,7 +47,7 @@ export default async function getDelegateData(
       Dao: ${delegate.daoName}
       Name: ${userData.ensName}
       Address: ${userData.address}
-      Delegated votes: ${delegateLifetimeStats.delegatedVotes}
+      Delegated votes: ${delegateLifetimeStats.delegatedVotes || delegate.delegatedVotes}
       On-chain voting percent: ${delegateLifetimeStats.onChainVotesPct || 0}%
       Off-chain voting percent: ${delegateLifetimeStats.offChainVotesPct || 0}%
     `;
@@ -61,7 +61,6 @@ export default async function getDelegateData(
     });
   } catch (err) {
     console.log(err);
-    console.log(err.response.data.error);
 
     const userNotFoundError = err.response.data.error
       ? !isEthAddress(address)
@@ -69,6 +68,6 @@ export default async function getDelegateData(
         : "We couldn't find any contributor with that address"
       : 'Something went wrong, please try again';
 
-    return ticketChannel.send(userNotFoundError);
+    return ticketChannel.send(`<@!${userId}> ${userNotFoundError}`);
   }
 }

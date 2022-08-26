@@ -1,9 +1,11 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable max-lines-per-function */
 import { Client, TextChannel } from 'discord.js';
 import 'dotenv/config';
 import linkWalletHandler from '../src/commandsHandler/link-wallet';
 import getDelegateData from '../src/commandsHandler/get-delegate-data';
 import deployCommands from '../src/deploy-commands';
+import { createTicketChannel } from '../src/utils/create-ticket-channel';
 
 const client = new Client({
   intents: []
@@ -59,7 +61,7 @@ describe('BOT', () => {
         process.env.DISCORD_TEST_APPLICATION_ID,
         ticketChannel
       );
-      expect(response.content).toBe('Something went wrong, please try again');
+      expect(response.content).toContain(`We couldn't find any contributor with that name`);
     });
 
     it(`Dao not found`, async () => {
@@ -123,6 +125,21 @@ describe('BOT', () => {
             process.env.DISCORD_TEST_APPLICATION_ID,
             ticketChannel
           )
+      ).not.toThrowError();
+    });
+  });
+
+  describe('BOT - Create channel', () => {
+    jest.setTimeout(30000);
+    it(`Should create channel`, async () => {
+      const channel = (await (
+        await client.guilds.fetch(process.env.DISCORD_TEST_GUILD_ID)
+      ).channels.fetch(process.env.DISCORD_TEST_CHANNEL_ID)) as TextChannel;
+
+      const lastInteraction = Array.from(await channel.messages.fetch({ limit: 1 }))[0][1];
+
+      expect(
+        async () => await createTicketChannel(client, lastInteraction as any)
       ).not.toThrowError();
     });
   });
