@@ -4,11 +4,7 @@ import { CommandInteraction, MessageEmbed } from 'discord.js';
 import { isEthAddress } from '../utils/is-eth-address';
 import { api } from '../api/index';
 
-export default async function getDelegateData(
-  interaction: CommandInteraction,
-
-  ticketChannel
-) {
+export default async function getDelegateData(interaction: CommandInteraction) {
   const { name: guildName } = interaction.guild;
   const address = interaction.options.getString('user');
   const daoName = interaction.options.getString('dao');
@@ -22,8 +18,9 @@ export default async function getDelegateData(
 
     if (daoName && daoName.toLowerCase() === 'all') {
       userData.delegates.map((delegate) => {
+        console.log({ userData });
         const delegateLifetimeStats = delegate.stats.find((item) => item.period === 'lifetime');
-
+        console.log({ delegateLifetimeStats });
         message += `
         Dao: ${delegate.daoName}
         Name: ${userData.ensName}
@@ -40,7 +37,10 @@ export default async function getDelegateData(
         const delegateNotFoundMessage = daoName
           ? `We couldn't find a delegate with this address in ${daoName}. Email info@showkarma.xyz if you would like us to index this address`
           : 'No delegate found in DAO associated with this server. Request stats by passing dao name or "all" to get all the stats of this delegate';
-        return ticketChannel.send(delegateNotFoundMessage);
+        return interaction.reply({
+          content: delegateNotFoundMessage,
+          ephemeral: true
+        });
       }
 
       const delegateLifetimeStats = delegate.stats.find((item) => item.period === 'lifetime');
@@ -57,9 +57,9 @@ export default async function getDelegateData(
 
     const userDataMessagemEmbed = new MessageEmbed().setDescription(message);
 
-    return ticketChannel.send({
-      content: `<@!${interaction.user.id}>`,
-      embeds: [userDataMessagemEmbed]
+    return interaction.reply({
+      embeds: [userDataMessagemEmbed],
+      ephemeral: true
     });
   } catch (err) {
     console.log(err.response.data.error);
@@ -70,6 +70,6 @@ export default async function getDelegateData(
           : "We couldn't find any contributor with that address"
         : 'Something went wrong, please try again';
 
-    return ticketChannel.send(userNotFoundError);
+    return interaction.reply({ content: userNotFoundError, ephemeral: true });
   }
 }

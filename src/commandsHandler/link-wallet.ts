@@ -5,7 +5,7 @@ import CryptoJsHandler from '../utils/aes256-generator';
 import { CommandInteraction } from 'discord.js';
 import { SentryService } from '../sentry/sentry.service';
 
-export default async function linkWalletHandler(interaction: CommandInteraction, ticketChannel) {
+export default async function linkWalletHandler(interaction: CommandInteraction) {
   const sentryService = new SentryService();
   const address = interaction.options.getString('address');
   const daoName = interaction.options.getString('dao');
@@ -22,9 +22,10 @@ export default async function linkWalletHandler(interaction: CommandInteraction,
         userAddress: address
       })
     );
-    await ticketChannel.send(
-      `<@!${interaction.user.id}> \n ${process.env.FRONTEND_URL}/discord/linking?message=${encryptedData}`
-    );
+    await interaction.reply({
+      content: ` ${process.env.FRONTEND_URL}/discord/linking?message=${encryptedData}`,
+      ephemeral: true
+    });
   } catch (err) {
     console.log(err);
 
@@ -41,10 +42,12 @@ export default async function linkWalletHandler(interaction: CommandInteraction,
       }
     );
     if (err.code === 50007) {
-      return interaction.reply(`
-      <@!${interaction.user.id}> \n Something went wrong, please try again`);
+      return interaction.reply({
+        content: ` Something went wrong, please try again`,
+        ephemeral: true
+      });
     } else {
-      return ticketChannel.send(`<@!${interaction.user.id}> \n Invalid eth address!`);
+      return interaction.reply({ content: `Invalid eth address!`, ephemeral: true });
     }
   }
 }
