@@ -80,7 +80,7 @@ describe('BOT', () => {
           await linkWalletHandler(
             '0x65C818191F9dF5381472a91571d50B3234402C54',
             'ens',
-            process.env.DISCORD_TEST_APPLICATION_ID
+            process.env.DISCORD_APPLICATION_ID
           )
       ).not.toThrowError();
     });
