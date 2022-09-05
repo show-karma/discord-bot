@@ -1,7 +1,7 @@
 import { SlashCommandBuilder } from '@discordjs/builders';
 import linkWalletHandler from '../commandsHandler/link-wallet';
 import getDelegateData from '../commandsHandler/get-delegate-data';
-import { CommandInteraction } from 'discord.js';
+import { CommandInteraction, MessageEmbed } from 'discord.js';
 
 export const data = new SlashCommandBuilder()
   .setName('karma')
@@ -28,15 +28,27 @@ export const data = new SlashCommandBuilder()
   );
 
 export async function execute(interaction: CommandInteraction) {
+  let replyMessage = '';
   switch (interaction.options.getSubcommand()) {
     case 'linkwallet':
-      await linkWalletHandler(interaction);
+      const addressWallet = interaction.options.getString('address');
+      const daoNameWallet = interaction.options.getString('dao') || interaction.guildId;
+      replyMessage = await linkWalletHandler(addressWallet, daoNameWallet, interaction.user.id);
       break;
     case 'stats':
-      await getDelegateData(interaction);
+      const addressStats = interaction.options.getString('user');
+      const daoNameStats = interaction.options.getString('dao');
+      const guildNameStats = interaction.guild.name;
+      replyMessage = await getDelegateData(addressStats, daoNameStats, guildNameStats);
       break;
     default:
       await interaction.editReply('This command does not exist');
       break;
   }
+
+  const messageEmbed = new MessageEmbed().setDescription(replyMessage);
+  return interaction.reply({
+    embeds: [messageEmbed],
+    ephemeral: true
+  });
 }

@@ -8,10 +8,7 @@ export default async function deployCommands(guildId: string) {
   const commands = [karmaCommands.data];
   const rest = new REST({ version: '9' }).setToken(process.env.DISCORD_TOKEN);
 
-  rest
-    .put(Routes.applicationGuildCommands(process.env.DISCORD_APPLICATION_ID, guildId), {
-      body: commands
-    })
-    .then(() => console.log('Successfully registered application commands.'))
-    .catch(console.error);
+  return rest.put(Routes.applicationGuildCommands(process.env.DISCORD_APPLICATION_ID, guildId), {
+    body: commands
+  });
 }
