@@ -58,7 +58,7 @@ client.on('interactionCreate', async (interaction: CustomInteraction) => {
       ? `We can't access your private channel. Please send the command in a public channel`
       : 'There was an error while executing this command, please try again';
 
-    await interaction.reply({ content: formattedErrorMessage });
+    await interaction.reply({ content: formattedErrorMessage, ephemeral: true });
   }
 });
 
