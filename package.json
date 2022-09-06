@@ -4,7 +4,7 @@
   "main": "index.js",
   "license": "MIT",
   "scripts": {
-    "build": "tsc",
+    "build": "tsc -p ./tsconfig.build.json",
     "test": "jest --verbose --detectOpenHandles --forceExit",
     "deploy:commands": "yarn ts-node src/deploy-commands.ts",
     "start": "NODE_ENV=development TZ=UTC yarn ts-node src/main.ts",
