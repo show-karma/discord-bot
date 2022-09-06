@@ -10,7 +10,7 @@
     "outDir": "./dist",
     "baseUrl": "./",
     "esModuleInterop": true,
-    "incremental": false,
+    "incremental": true,
     "resolveJsonModule": true,
     "skipLibCheck": true
   }

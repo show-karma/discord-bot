@@ -1,20 +1,12 @@
 /* eslint-disable @typescript-eslint/no-unsafe-return */
 /* eslint-disable no-console */
-import { CommandInteraction, MessageEmbed } from 'discord.js';
 import { isEthAddress } from '../utils/is-eth-address';
 import { api } from '../api/index';
 
-export default async function getDelegateData(
-  interaction: CommandInteraction,
-
-  ticketChannel
-) {
-  const { name: guildName } = interaction.guild;
-  const address = interaction.options.getString('user');
-  const daoName = interaction.options.getString('dao');
-
+export default async function getDelegateData(address: string, daoName: string, guildName: string) {
   try {
-    const userData = await (await api.get(`/user/${address}`)).data.data;
+    const { data } = await api.get(`/user/${address}`);
+    const userData = data.data;
 
     const finalGuildName = daoName || guildName;
 
@@ -23,12 +15,11 @@ export default async function getDelegateData(
     if (daoName && daoName.toLowerCase() === 'all') {
       userData.delegates.map((delegate) => {
         const delegateLifetimeStats = delegate.stats.find((item) => item.period === 'lifetime');
-
         message += `
         Dao: ${delegate.daoName}
         Name: ${userData.ensName}
         Address: ${userData.address}
-        Delegated votes: ${delegateLifetimeStats.delegatedVotes}
+        Delegated votes: ${delegate.delegatedVotes || 0}
         On-chain voting percent: ${delegateLifetimeStats.onChainVotesPct || 0}%
         Off-chain voting percent: ${delegateLifetimeStats.offChainVotesPct || 0}%
       `;
@@ -40,7 +31,7 @@ export default async function getDelegateData(
         const delegateNotFoundMessage = daoName
           ? `We couldn't find a delegate with this address in ${daoName}. Email info@showkarma.xyz if you would like us to index this address`
           : 'No delegate found in DAO associated with this server. Request stats by passing dao name or "all" to get all the stats of this delegate';
-        return ticketChannel.send(delegateNotFoundMessage);
+        return delegateNotFoundMessage;
       }
 
       const delegateLifetimeStats = delegate.stats.find((item) => item.period === 'lifetime');
@@ -49,27 +40,24 @@ export default async function getDelegateData(
       Dao: ${delegate.daoName}
       Name: ${userData.ensName}
       Address: ${userData.address}
-      Delegated votes: ${delegateLifetimeStats.delegatedVotes}
+      Delegated votes: ${delegate.delegatedVotes}
       On-chain voting percent: ${delegateLifetimeStats.onChainVotesPct || 0}%
       Off-chain voting percent: ${delegateLifetimeStats.offChainVotesPct || 0}%
     `;
     }
 
-    const userDataMessagemEmbed = new MessageEmbed().setDescription(message);
-
-    return ticketChannel.send({
-      content: `<@!${interaction.user.id}>`,
-      embeds: [userDataMessagemEmbed]
-    });
+    return message;
   } catch (err) {
     console.log(err.response.data.error);
+
     const userNotFoundError =
-      err.response.data.error.message === 'User not found'
+      err.response.data.error.message === 'User not found' ||
+      err.response.data.error.errors[0].constraints
         ? !isEthAddress(address)
           ? "We couldn't find any contributor with that name"
           : "We couldn't find any contributor with that address"
         : 'Something went wrong, please try again';
 
-    return ticketChannel.send(userNotFoundError);
+    return userNotFoundError;
   }
 }

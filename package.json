@@ -4,7 +4,8 @@
   "main": "index.js",
   "license": "MIT",
   "scripts": {
-    "build": "tsc",
+    "build": "tsc -p ./tsconfig.build.json",
+    "test": "jest --verbose --detectOpenHandles --forceExit",
     "deploy:commands": "yarn ts-node src/deploy-commands.ts",
     "start": "NODE_ENV=development TZ=UTC yarn ts-node src/main.ts",
     "service:discord:message:update:consumer": "TZ=UTC NODE_ENV=development nodemon src/services/discord-message-consumer/main.ts",
@@ -40,6 +41,9 @@
     "nodemon": "^2.0.16",
     "prettier": "^2.6.2",
     "ts-node": "^10.8.2",
-    "typescript": "^4.7.4"
+    "typescript": "^4.7.4",
+    "@types/jest": "^28.1.6",
+    "jest": "^28.1.3",
+    "ts-jest": "^28.0.7"
   }
 }
