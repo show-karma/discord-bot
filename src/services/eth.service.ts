@@ -8,16 +8,16 @@ export class EthService {
   }
 
   private isEthAddress(address: string) {
-    return /^0x[a-fA-F0-9]{40}$/g.test(address) ? address : false;
+    return /^0x[a-fA-F0-9]{40}$/g.test(address) ? address : null;
   }
 
-  private async getAddressIfIsEnsName(ensName: string) {
-    if (!ensName.includes('.eth')) return false;
+  private async getAddressIfIsEnsName(ensName: string): Promise<string | null> {
+    if (!ensName.includes('.eth')) return null;
 
     try {
       return await this.mainnetProvider.resolveName(ensName);
     } catch (err) {
-      return false;
+      return null;
     }
   }
 
