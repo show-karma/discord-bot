@@ -15,8 +15,7 @@ export class EthService {
     if (!ensName.includes('.eth')) return false;
 
     try {
-      const response = await this.mainnetProvider.resolveName(ensName);
-      return response;
+      return await this.mainnetProvider.resolveName(ensName);
     } catch (err) {
       return false;
     }
