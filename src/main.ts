@@ -51,6 +51,7 @@ client.on('interactionCreate', async (interaction: CustomInteraction) => {
   const command = allCommands.find((command) => command.data.name === commandName);
   if (!command) return;
   try {
+    await interaction.deferReply({ ephemeral: true });
     await command.execute(interaction);
   } catch (error) {
     console.log('Error: ', error.message);
