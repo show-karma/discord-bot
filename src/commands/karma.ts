@@ -11,7 +11,7 @@ export const data = new SlashCommandBuilder()
       .setName('linkwallet')
       .setDescription('link you eth address!')
       .addStringOption((option) =>
-        option.setName('address').setDescription('Eth address').setRequired(true)
+        option.setName('address').setDescription('Eth address or ens name').setRequired(true)
       )
       .addStringOption((option) => option.setName('dao').setDescription(`Enter daoName to link`))
   )
@@ -34,6 +34,7 @@ export async function execute(interaction: CommandInteraction) {
       const addressWallet = interaction.options.getString('address');
       const daoNameWallet = interaction.options.getString('dao') || interaction.guildId;
       replyMessage = await linkWalletHandler(addressWallet, daoNameWallet, interaction.user.id);
+
       break;
     case 'stats':
       const addressStats = interaction.options.getString('user');
@@ -47,8 +48,7 @@ export async function execute(interaction: CommandInteraction) {
   }
 
   const messageEmbed = new MessageEmbed().setDescription(replyMessage);
-  return interaction.reply({
-    embeds: [messageEmbed],
-    ephemeral: true
+  return interaction.editReply({
+    embeds: [messageEmbed]
   });
 }

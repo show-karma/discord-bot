@@ -1,27 +1,28 @@
 /* eslint-disable @typescript-eslint/no-unsafe-return */
 /* eslint-disable no-console */
-import { isEthAddress } from '../utils/is-eth-address';
 import CryptoJsHandler from '../utils/aes256-generator';
 import { SentryService } from '../sentry/sentry.service';
+import { EthService } from '../services/eth.service';
 
 export default async function linkWalletHandler(address: string, daoName: string, userId: string) {
   const sentryService = new SentryService();
+  const ethService = new EthService();
 
   try {
-    if (!isEthAddress(address)) {
-      throw new Error('Invalid Eth address');
-    }
+    const validAddressOrEnsAddress = await ethService.checkIfAddressOrEnsNameIsValid(
+      address.toLowerCase()
+    );
 
     const encryptedData = new CryptoJsHandler(process.env.DISCORD_BOT_AES256_SECRET).encrypt(
       JSON.stringify({
         guildId: daoName.toLowerCase(),
         discordId: userId,
-        userAddress: address
+        userAddress: validAddressOrEnsAddress
       })
     );
     return ` ${process.env.FRONTEND_URL}/discord/linking?message=${encryptedData}`;
   } catch (err) {
-    console.log(err);
+    console.log(err.message);
 
     sentryService.logError(
       err,
@@ -38,7 +39,7 @@ export default async function linkWalletHandler(address: string, daoName: string
     if (err.code === 50007) {
       return ` Something went wrong, please try again`;
     } else {
-      return `Invalid eth address!`;
+      return err.message;
     }
   }
 }
