@@ -3,8 +3,17 @@ import { ethers } from 'ethers';
 export class EthService {
   private mainnetProvider: ethers.providers.JsonRpcProvider;
 
-  constructor() {
-    this.mainnetProvider = new ethers.providers.JsonRpcProvider(process.env.MAINNET_PROVIDER_URL);
+  constructor(providerUrl = process.env.MAINNET_PROVIDER_URL) {
+    this.mainnetProvider = new ethers.providers.JsonRpcProvider(providerUrl);
+  }
+
+  public async isValidNetwork(): Promise<boolean> {
+    try {
+      const { chainId } = await this.mainnetProvider.getNetwork();
+      return !!chainId;
+    } catch (err) {
+      return false;
+    }
   }
 
   private isEthAddress(address: string): boolean {
