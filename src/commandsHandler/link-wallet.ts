@@ -13,10 +13,6 @@ export default async function linkWalletHandler(address: string, daoName: string
       address.toLowerCase()
     );
 
-    if (!validAddressOrEnsAddress) {
-      throw new Error('Invalid eth address or ens name');
-    }
-
     const encryptedData = new CryptoJsHandler(process.env.DISCORD_BOT_AES256_SECRET).encrypt(
       JSON.stringify({
         guildId: daoName.toLowerCase(),

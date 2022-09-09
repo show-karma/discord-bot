@@ -7,13 +7,12 @@ export class EthService {
     this.mainnetProvider = new ethers.providers.JsonRpcProvider(process.env.MAINNET_PROVIDER_URL);
   }
 
-  private isEthAddress(address: string) {
-    return /^0x[a-fA-F0-9]{40}$/g.test(address) ? address : null;
+  private isEthAddress(address: string): boolean {
+    return /^0x[a-fA-F0-9]{40}$/g.test(address);
   }
 
   private async getAddressIfIsEnsName(ensName: string): Promise<string | null> {
     if (!ensName.includes('.eth')) return null;
-
     try {
       return await this.mainnetProvider.resolveName(ensName);
     } catch (err) {
@@ -21,10 +20,16 @@ export class EthService {
     }
   }
 
-  async checkIfAddressOrEnsNameIsValid(address: string) {
+  async checkIfAddressOrEnsNameIsValid(address: string): Promise<string> {
     const isEthAddress = this.isEthAddress(address);
     const addressForEnsName = await this.getAddressIfIsEnsName(address);
 
-    return isEthAddress || addressForEnsName;
+    const validAddressOrEnsAddress = isEthAddress ? address : addressForEnsName;
+
+    if (!validAddressOrEnsAddress) {
+      throw new Error('Invalid eth address or ens name');
+    }
+
+    return validAddressOrEnsAddress;
   }
 }
