@@ -157,7 +157,7 @@ export default class GetPastMessagesService {
             if (!channelExists) continue;
             do {
               const messages = await channelExists.messages.fetch({
-                before: pointerMessage
+                after: pointerMessage
               });
 
               const messagesToArray = Array.from(messages);
