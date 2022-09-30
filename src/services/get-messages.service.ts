@@ -27,6 +27,16 @@ export interface DiscordMessage {
   createdTimestamp: number;
   attachments: unknown[];
   author: { id: string };
+  type: string;
+  channelId: string;
+  reference: {
+    channelId: string;
+  };
+}
+
+export interface ThreadCreation {
+  parentChannelId: string;
+  threadId: string;
 }
 
 interface MessageCustom extends Message {
@@ -98,13 +108,17 @@ export default class GetPastMessagesService {
     }
   }
 
+  getParentChannelIdOfAThread(threads: ThreadCreation[], id: string) {
+    return threads.find((thread: ThreadCreation) => thread.threadId === id)?.parentChannelId;
+  }
+
   async getMessages(
     client: Client,
     { reason, publicAddress, discordId, daos, users }: DiscordSQSMessage
   ) {
     const dateObj = new Date();
     const requiredDate = new Date().setMonth(dateObj.getMonth() - 6);
-
+    const threadsCreation: ThreadCreation[] = [];
     try {
       const allBotGuilds = Array.from(await client.guilds.fetch());
       const allUsers = [discordId || users].flat();
@@ -139,10 +153,9 @@ export default class GetPastMessagesService {
             );
             let pointerMessage = undefined;
             let flagToContinue = true;
+            const channelExists = (await client.channels.cache.get(channel.id)) as any;
+            if (!channelExists) continue;
             do {
-              const channelExists = (await client.channels.cache.get(channel.id)) as any;
-              if (!channelExists) continue;
-
               const messages = await channelExists.messages.fetch({
                 before: pointerMessage
               });
@@ -157,17 +170,26 @@ export default class GetPastMessagesService {
                     flagToContinue = false;
                   }
 
+                  if (message.type === 'THREAD_CREATED') {
+                    threadsCreation.push({
+                      parentChannelId: message.channelId,
+                      threadId: message.reference.channelId
+                    });
+                  }
+
                   if (
                     userExists &&
                     +message.createdTimestamp >= +requiredDate &&
-                    +message.id > +fixedMessageId
+                    +message.id > +fixedMessageId &&
+                    (message.type === 'DEFAULT' || message.type === 'REPLY')
                   ) {
                     allMessagesToSave.push({
                       messageCreatedAt: new Date(message.createdTimestamp),
                       messageId: message.id,
                       guildId: guild.guildId,
                       daoName: guild.name,
-                      channelId: channel.id,
+                      channelId:
+                        this.getParentChannelIdOfAThread(threadsCreation, channel.id) || channel.id,
                       userId: message.author.id,
                       messageType: Array.from(message.attachments).length
                         ? 'attachment'
