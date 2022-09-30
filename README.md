@@ -4,9 +4,11 @@ Karma's discord bot can be used by communities to measure and view member contri
 
 ## Installation
 
-Click the link below to install the bot on your discord server. You must have admin permission to install the bot
+Step 1: Click the link below to install the bot on your discord server. You must have admin permission to install the bot
 
 https://discord.com/api/oauth2/authorize?client_id=986699463164846100&permissions=2147483664&scope=bot%20applications.commands
+
+Step 2: Contact us at dao@showkarma.xyz or join our discord https://discord.com/invite/hnZm3MffqQ and let us know so we can whitelist your DAO to start collecting Discord stats.
 
 ## Bot commands
 
