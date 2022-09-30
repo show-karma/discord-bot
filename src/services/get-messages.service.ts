@@ -2,7 +2,7 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable no-console */
-import { Client, Intents } from 'discord.js';
+import { Client } from 'discord.js';
 import { delay } from '../utils/delay';
 import dotenv from 'dotenv';
 import { LastMessageIdGetterService } from './last-message-id-getter.service';
@@ -151,7 +151,7 @@ export default class GetPastMessagesService {
               guild.guildId,
               channel.id
             );
-            let pointerMessage = undefined;
+            let pointerMessage = fixedMessageId || '1';
             let flagToContinue = true;
             const channelExists = (await client.channels.cache.get(channel.id)) as any;
             if (!channelExists) continue;
@@ -166,7 +166,7 @@ export default class GetPastMessagesService {
                 messages.map((message: DiscordMessage) => {
                   messagescount += 1;
                   const userExists = allUsers.find((user) => +user === +message.author.id);
-                  if (!messages.length || +message.createdTimestamp <= +requiredDate) {
+                  if (+message.createdTimestamp <= +requiredDate) {
                     flagToContinue = false;
                   }
 
@@ -200,7 +200,9 @@ export default class GetPastMessagesService {
                   }
                 });
 
-              pointerMessage = messagesToArray[messagesToArray.length - 1]?.[0];
+              const keys = Array.from(messages.keys()).sort((a: string, b: string) => +b - +a);
+
+              pointerMessage = keys[0].toString();
             } while (pointerMessage && pointerMessage > fixedMessageId && flagToContinue);
           } catch (err) {
             console.log(err.message, channel);
