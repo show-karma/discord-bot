@@ -202,7 +202,7 @@ export default class GetPastMessagesService {
 
               const keys = Array.from(messages.keys()).sort((a: string, b: string) => +b - +a);
 
-              pointerMessage = keys[0].toString();
+              pointerMessage = keys[0]?.toString();
             } while (pointerMessage && pointerMessage > fixedMessageId && flagToContinue);
           } catch (err) {
             console.log(err.message, channel);
