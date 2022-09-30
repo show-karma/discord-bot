@@ -153,10 +153,9 @@ export default class GetPastMessagesService {
             );
             let pointerMessage = undefined;
             let flagToContinue = true;
+            const channelExists = (await client.channels.cache.get(channel.id)) as any;
+            if (!channelExists) continue;
             do {
-              const channelExists = (await client.channels.cache.get(channel.id)) as any;
-              if (!channelExists) continue;
-
               const messages = await channelExists.messages.fetch({
                 before: pointerMessage
               });
@@ -184,7 +183,6 @@ export default class GetPastMessagesService {
                     +message.id > +fixedMessageId &&
                     (message.type === 'DEFAULT' || message.type === 'REPLY')
                   ) {
-                    console.log(message.content);
                     allMessagesToSave.push({
                       messageCreatedAt: new Date(message.createdTimestamp),
                       messageId: message.id,
