@@ -152,7 +152,6 @@ export default class GetPastMessagesService {
               channel.id
             );
             let pointerMessage = fixedMessageId || '1';
-            let flagToContinue = true;
             const channelExists = (await client.channels.cache.get(channel.id)) as any;
             if (!channelExists) continue;
             do {
@@ -166,11 +165,11 @@ export default class GetPastMessagesService {
                 messages.map((message: DiscordMessage) => {
                   messagescount += 1;
                   const userExists = allUsers.find((user) => +user === +message.author.id);
-                  if (+message.createdTimestamp <= +requiredDate) {
-                    flagToContinue = false;
-                  }
 
-                  if (message.type === 'THREAD_CREATED') {
+                  if (
+                    +message.createdTimestamp >= +requiredDate &&
+                    message.type === 'THREAD_CREATED'
+                  ) {
                     threadsCreation.push({
                       parentChannelId: message.channelId,
                       threadId: message.reference.channelId
@@ -203,7 +202,7 @@ export default class GetPastMessagesService {
               const keys = Array.from(messages.keys()).sort((a: string, b: string) => +b - +a);
 
               pointerMessage = keys[0]?.toString();
-            } while (pointerMessage && pointerMessage > fixedMessageId && flagToContinue);
+            } while (pointerMessage && pointerMessage > fixedMessageId);
           } catch (err) {
             console.log(err.message, channel);
           }
