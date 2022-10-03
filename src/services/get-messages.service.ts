@@ -100,18 +100,22 @@ export default class GetPastMessagesService {
   }
 
   async fetchArchivedThreads(client: Client, channelId: string) {
-    const channelExists = (await client.channels.cache.get(channelId)) as any;
+    try {
+      const channelExists = (await client.channels.cache.get(channelId)) as any;
 
-    if (!channelExists) return [];
-    const archivedThreads = await channelExists?.threads?.fetchArchived();
-    if (!archivedThreads?.threads) return [];
+      if (!channelExists) return [];
+      const archivedThreads = await channelExists?.threads?.fetchArchived();
+      if (!archivedThreads?.threads) return [];
 
-    return archivedThreads.threads.map((thread: any) => ({
-      name: thread.name,
-      id: thread.id,
-      type: thread.type,
-      parentId: thread.parentId
-    }));
+      return archivedThreads.threads.map((thread: any) => ({
+        name: thread.name,
+        id: thread.id,
+        type: thread.type,
+        parentId: thread.parentId
+      }));
+    } catch (err) {
+      return [];
+    }
   }
 
   async insertAllMessages(allMessagesToSave: Message[]) {
