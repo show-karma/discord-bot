@@ -67,7 +67,7 @@ export default class GetPastMessagesService {
     ];
     const textChannels: TextChannel[] = [];
     [...channels].map((channel) => {
-      console.log(channel[1].type);
+      console.log({ guildId, channel: channel[1].name, channelId: channel[1].type });
       if (
         channel[1].name &&
         channel[1].id &&
