@@ -56,9 +56,18 @@ export default class GetPastMessagesService {
     specificChannels: { id: string }[]
   ) {
     const channels = (await client.guilds.fetch(guildId)).channels.cache;
-    const channelsType = ['GUILD_TEXT', 'GUILD_PUBLIC_THREAD', 'GUILD_PRIVATE_THREAD'];
+    const channelsType = [
+      'GUILD_TEXT',
+      'PUBLIC_THREAD',
+      'PRIVATE_THREAD',
+      'GUILD_PUBLIC_THREAD',
+      'GUILD_PUBLIC_THREAD',
+      'GUILD_ANNOUNCEMENT',
+      'ANNOUNCEMENT_THREAD'
+    ];
     const textChannels: TextChannel[] = [];
     [...channels].map((channel) => {
+      console.log(channel[1].type);
       if (
         channel[1].name &&
         channel[1].id &&
@@ -79,7 +88,7 @@ export default class GetPastMessagesService {
           ...specificChannels,
           ...textChannels.filter(
             (channel) =>
-              channel.type !== 'GUILD_TEXT' &&
+              channelsType.includes(channel.type) &&
               specificChannels.find((specificChannel) => specificChannel.id === channel.parentId)
           )
         ]
@@ -145,13 +154,15 @@ export default class GetPastMessagesService {
           formattedGuildChannels
         );
 
+        console.log({ textChannels });
+
         for (const channel of textChannels) {
           try {
             const fixedMessageId = await this.getMessageService.getLastMessageId(
               guild.guildId,
               channel.id
             );
-            let pointerMessage = fixedMessageId || '1';
+            let pointerMessage = fixedMessageId;
             const channelExists = (await client.channels.cache.get(channel.id)) as any;
             if (!channelExists) continue;
             do {
@@ -202,7 +213,7 @@ export default class GetPastMessagesService {
               const keys = Array.from(messages.keys()).sort((a: string, b: string) => +b - +a);
 
               pointerMessage = keys[0]?.toString();
-            } while (pointerMessage && pointerMessage > fixedMessageId);
+            } while (pointerMessage);
           } catch (err) {
             console.log(err.message, channel);
           }
