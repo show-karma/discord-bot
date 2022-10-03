@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unsafe-return */
 /* eslint-disable max-lines-per-function */
 /* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable @typescript-eslint/no-explicit-any */
@@ -56,6 +57,7 @@ export default class GetPastMessagesService {
     specificChannels: { id: string }[]
   ) {
     const channels = (await client.guilds.fetch(guildId)).channels.cache;
+
     const channelsType = [
       'GUILD_TEXT',
       'PUBLIC_THREAD',
@@ -66,8 +68,7 @@ export default class GetPastMessagesService {
       'ANNOUNCEMENT_THREAD'
     ];
     const textChannels: TextChannel[] = [];
-    [...channels].map((channel) => {
-      console.log({ guildId, channel: channel[1].name, channelId: channel[1].type });
+    for (const channel of [...channels]) {
       if (
         channel[1].name &&
         channel[1].id &&
@@ -80,21 +81,37 @@ export default class GetPastMessagesService {
           type: channel[1].type,
           parentId: channel[1].parentId
         });
+        const archivedThreads = await this.fetchArchivedThreads(client, channel[1].id);
+
+        if (archivedThreads) textChannels.push(...archivedThreads);
       }
-    });
+    }
 
     const filteredChannels = specificChannels
       ? [
           ...specificChannels,
-          ...textChannels.filter(
-            (channel) =>
-              channelsType.includes(channel.type) &&
-              specificChannels.find((specificChannel) => specificChannel.id === channel.parentId)
+          ...textChannels.filter((channel) =>
+            specificChannels.find((specificChannel) => specificChannel.id === channel.parentId)
           )
         ]
       : textChannels;
 
     return filteredChannels;
+  }
+
+  async fetchArchivedThreads(client: Client, channelId: string) {
+    const channelExists = (await client.channels.cache.get(channelId)) as any;
+
+    if (!channelExists) return [];
+    const archivedThreads = await channelExists?.threads?.fetchArchived();
+    if (!archivedThreads?.threads) return [];
+
+    return archivedThreads.threads.map((thread: any) => ({
+      name: thread.name,
+      id: thread.id,
+      type: thread.type,
+      parentId: thread.parentId
+    }));
   }
 
   async insertAllMessages(allMessagesToSave: Message[]) {
@@ -162,7 +179,7 @@ export default class GetPastMessagesService {
               guild.guildId,
               channel.id
             );
-            let pointerMessage = fixedMessageId;
+            let pointerMessage = fixedMessageId || '1';
             const channelExists = (await client.channels.cache.get(channel.id)) as any;
             if (!channelExists) continue;
             do {
