@@ -3,6 +3,22 @@
 import { isEthAddress } from '../utils/is-eth-address';
 import { api } from '../api/index';
 
+const createMessageInfo = (
+  daoName: string,
+  ensName: string,
+  address: string,
+  delegatedVotes: string,
+  onChainVotesPct: string,
+  offChainVotesPct: string
+) =>
+  `
+Dao: ${daoName}\n${ensName ? `Name: ${ensName}\n` : ''}Address: ${address}\n${
+    delegatedVotes ? `Delegated votes: ${delegatedVotes || 0}\n` : ''
+  }${onChainVotesPct ? `On-chain voting percent: ${onChainVotesPct || 0}%\n` : ''}${
+    offChainVotesPct ? `Off-chain voting percent: ${offChainVotesPct || 0}%` : ''
+  }
+      `;
+
 export default async function getDelegateData(address: string, daoName: string, guildId: string) {
   try {
     const { data } = await api.get(`/user/${address}`);
@@ -15,14 +31,14 @@ export default async function getDelegateData(address: string, daoName: string, 
     if (daoName && daoName.toLowerCase() === 'all') {
       userData.delegates.map((delegate) => {
         const delegateLifetimeStats = delegate.stats.find((item) => item.period === 'lifetime');
-        message += `
-        Dao: ${delegate.daoName}
-        Name: ${userData.ensName}
-        Address: ${userData.address}
-        Delegated votes: ${delegate.delegatedVotes || 0}
-        On-chain voting percent: ${delegateLifetimeStats.onChainVotesPct || 0}%
-        Off-chain voting percent: ${delegateLifetimeStats.offChainVotesPct || 0}%
-      `;
+        message += createMessageInfo(
+          delegate.daoName,
+          userData.ensName,
+          userData.address,
+          delegate.delegatedVotes,
+          delegateLifetimeStats.onChainVotesPct,
+          delegateLifetimeStats.offChainVotesPct
+        );
       });
     } else {
       const delegate = userData.delegates.find(
@@ -30,7 +46,6 @@ export default async function getDelegateData(address: string, daoName: string, 
           finalGuildIdentifier === item.daoName ||
           finalGuildIdentifier === item.socialLinks.discordGuildId
       );
-      console.log(delegate);
 
       if (!delegate) {
         const delegateNotFoundMessage = daoName
@@ -41,14 +56,14 @@ export default async function getDelegateData(address: string, daoName: string, 
 
       const delegateLifetimeStats = delegate.stats.find((item) => item.period === 'lifetime');
 
-      message += `
-      Dao: ${delegate.daoName}
-      Name: ${userData.ensName}
-      Address: ${userData.address}
-      Delegated votes: ${delegate.delegatedVotes}
-      On-chain voting percent: ${delegateLifetimeStats.onChainVotesPct || 0}%
-      Off-chain voting percent: ${delegateLifetimeStats.offChainVotesPct || 0}%
-    `;
+      message += createMessageInfo(
+        delegate.daoName,
+        userData.ensName,
+        userData.address,
+        delegate.delegatedVotes,
+        delegateLifetimeStats.onChainVotesPct,
+        delegateLifetimeStats.offChainVotesPct
+      );
     }
 
     return message;
