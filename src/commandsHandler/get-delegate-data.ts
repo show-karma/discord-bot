@@ -8,7 +8,7 @@ export default async function getDelegateData(address: string, daoName: string, 
     const { data } = await api.get(`/user/${address}`);
     const userData = data?.data;
 
-    const finalGuildIdentifier = daoName || guildId;
+    const finalGuildIdentifier = daoName || guildId.toString();
 
     let message = ``;
 
@@ -27,9 +27,10 @@ export default async function getDelegateData(address: string, daoName: string, 
     } else {
       const delegate = userData.delegates.find(
         (item) =>
-          finalGuildIdentifier.includes(item.daoName) ||
-          finalGuildIdentifier.includes(item.socialLinks.discordGuildId)
+          finalGuildIdentifier === item.daoName ||
+          finalGuildIdentifier === item.socialLinks.discordGuildId
       );
+      console.log(delegate);
 
       if (!delegate) {
         const delegateNotFoundMessage = daoName
