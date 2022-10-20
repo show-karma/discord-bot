@@ -39,8 +39,8 @@ export async function execute(interaction: CommandInteraction) {
     case 'stats':
       const addressStats = interaction.options.getString('user');
       const daoNameStats = interaction.options.getString('dao');
-      const guildNameStats = interaction.guild.name;
-      replyMessage = await getDelegateData(addressStats, daoNameStats, guildNameStats);
+      const guildId = interaction.guild.id;
+      replyMessage = await getDelegateData(addressStats, daoNameStats, guildId);
       break;
     default:
       await interaction.editReply('This command does not exist');
