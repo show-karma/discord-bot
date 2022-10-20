@@ -3,12 +3,12 @@
 import { isEthAddress } from '../utils/is-eth-address';
 import { api } from '../api/index';
 
-export default async function getDelegateData(address: string, daoName: string, guildName: string) {
+export default async function getDelegateData(address: string, daoName: string, guildId: string) {
   try {
     const { data } = await api.get(`/user/${address}`);
-    const userData = data.data;
+    const userData = data?.data;
 
-    const finalGuildName = daoName || guildName;
+    const finalGuildIdentifier = daoName || guildId;
 
     let message = ``;
 
@@ -25,7 +25,11 @@ export default async function getDelegateData(address: string, daoName: string, 
       `;
       });
     } else {
-      const delegate = userData.delegates.find((item) => finalGuildName.includes(item.daoName));
+      const delegate = userData.delegates.find(
+        (item) =>
+          finalGuildIdentifier.includes(item.daoName) ||
+          finalGuildIdentifier.includes(item.socialLinks.discordGuildId)
+      );
 
       if (!delegate) {
         const delegateNotFoundMessage = daoName
