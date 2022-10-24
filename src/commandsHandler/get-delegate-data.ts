@@ -3,21 +3,22 @@
 import { isEthAddress } from '../utils/is-eth-address';
 import { api } from '../api/index';
 
-const createMessageInfo = (
+function createStatusMessage(
   daoName: string,
   ensName: string,
   address: string,
   delegatedVotes: string,
   onChainVotesPct: string,
   offChainVotesPct: string
-) =>
-  `
+) {
+  return `
 Dao: ${daoName}\n${ensName ? `Name: ${ensName}\n` : ''}Address: ${address}\n${
     delegatedVotes ? `Delegated votes: ${delegatedVotes || 0}\n` : ''
   }${onChainVotesPct ? `On-chain voting percent: ${onChainVotesPct || 0}%\n` : ''}${
     offChainVotesPct ? `Off-chain voting percent: ${offChainVotesPct || 0}%` : ''
   }
       `;
+}
 
 export default async function getDelegateData(address: string, daoName: string, guildId: string) {
   try {
@@ -31,7 +32,7 @@ export default async function getDelegateData(address: string, daoName: string, 
     if (daoName && daoName.toLowerCase() === 'all') {
       userData.delegates.map((delegate) => {
         const delegateLifetimeStats = delegate.stats.find((item) => item.period === 'lifetime');
-        message += createMessageInfo(
+        message += createStatusMessage(
           delegate.daoName,
           userData.ensName,
           userData.address,
@@ -56,7 +57,7 @@ export default async function getDelegateData(address: string, daoName: string, 
 
       const delegateLifetimeStats = delegate.stats.find((item) => item.period === 'lifetime');
 
-      message += createMessageInfo(
+      message += createStatusMessage(
         delegate.daoName,
         userData.ensName,
         userData.address,
