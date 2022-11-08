@@ -57,3 +57,7 @@ variable "memory" {
 variable "command" {
   type = string
 }
+
+variable "lambda_endpoint" {
+  default = "arn:aws:lambda:us-east-1:113455407625:function:alarms-discord"
+}

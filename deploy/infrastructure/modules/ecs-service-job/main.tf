@@ -79,3 +79,70 @@ resource "aws_ecs_service" "this_task_service" {
   deployment_maximum_percent         = 100
   deployment_minimum_healthy_percent = 0
 }
+
+resource "aws_cloudwatch_event_rule" "task_failure" {
+  name        = "${var.app_name}-fail"
+  description = "Watch for ${var.app_name} tasks that exit with non zero exit codes"
+
+  event_pattern = <<EOF
+  {
+    "source": [
+      "aws.ecs"
+    ],
+    "detail-type": [
+      "ECS Task State Change"
+    ],
+    "detail": {
+      "lastStatus": [
+        "STOPPED"
+      ],
+      "stoppedReason": [
+        "Essential container in task exited"
+      ],
+      "containers": {
+        "name": ["${var.app_name}"],
+         "exitCode": [
+          {"anything-but": 0}
+        ]
+      },
+      "clusterArn": ["${var.cluster_arn}"]
+    }
+  }
+  EOF
+}
+
+
+resource "aws_sns_topic" "task_failure" {
+  name = "${var.app_name}-fail"
+}
+
+resource "aws_cloudwatch_event_target" "sns_target" {
+  rule  = aws_cloudwatch_event_rule.task_failure.name
+  arn   = aws_sns_topic.task_failure.arn
+  input = jsonencode({ "message" : "Task ${var.app_name} failed! Please check logs https://console.aws.amazon.com/cloudwatch/home#logsV2:log-groups/log-group/${var.app_name} " })
+}
+
+data "aws_iam_policy_document" "task_failure" {
+
+  statement {
+    actions   = ["SNS:Publish"]
+    effect    = "Allow"
+    resources = [aws_sns_topic.task_failure.arn]
+
+    principals {
+      type        = "Service"
+      identifiers = ["events.amazonaws.com"]
+    }
+  }
+}
+
+resource "aws_sns_topic_policy" "task_failure" {
+  arn    = aws_sns_topic.task_failure.arn
+  policy = data.aws_iam_policy_document.task_failure.json
+}
+
+resource "aws_sns_topic_subscription" "lambda_alarm" {
+  topic_arn =  aws_sns_topic.task_failure.arn
+  protocol  = "lambda"
+  endpoint  =  var.lambda_endpoint
+}
