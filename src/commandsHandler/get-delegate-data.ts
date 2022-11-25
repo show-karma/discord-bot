@@ -62,8 +62,8 @@ export default async function getDelegateData(address: string, daoName: string, 
         userData.ensName,
         userData.address,
         delegate.delegatedVotes,
-        delegateLifetimeStats.onChainVotesPct,
-        delegateLifetimeStats.offChainVotesPct
+        delegateLifetimeStats?.onChainVotesPct,
+        delegateLifetimeStats?.offChainVotesPct
       );
     }
 
