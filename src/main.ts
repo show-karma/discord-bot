@@ -1,5 +1,5 @@
 /* eslint-disable no-console */
-import { Client, Guild, Intents } from 'discord.js';
+import { Client, Guild, Intents, MessageEmbed } from 'discord.js';
 import deployCommands from './deploy-commands';
 import * as commandModules from './commands/karma';
 import { CustomInteraction } from './@types/custom-interaction';
@@ -55,11 +55,14 @@ client.on('interactionCreate', async (interaction: CustomInteraction) => {
     await command.execute(interaction);
   } catch (error) {
     console.log('Error: ', error.message);
-    const formattedErrorMessage = error.message.contains('Missing Permissions')
-      ? `We can't access your private channel. Please send the command in a public channel`
-      : 'There was an error while executing this command, please try again';
 
-    await interaction.reply({ content: formattedErrorMessage, ephemeral: true });
+    const formattedErrorMessage = new MessageEmbed().setDescription(
+      'There was an error while executing this command, please try again'
+    );
+
+    await interaction.editReply({
+      embeds: [formattedErrorMessage]
+    });
   }
 });
 
