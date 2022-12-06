@@ -1,29 +1,36 @@
 import { Mixpanel, init as createMixpanel, Event as MixpanelEvent } from 'mixpanel';
-
-interface MixpanelProviderOptions {
-  /**
-   * A prefix to the event name that will be
-   * prefixed like prefix:eventName
-   */
-  eventNamePrefix?: string;
-  /**
-   * Appends data in the event properties.
-   */
-  appendData?: Record<string, unknown>;
-}
+import { MixpanelProviderOptions } from 'src/shared/types';
 
 /**
  * Provides standard services for mix panel
+ *
+ * @var queueSize
+ * @var enqueuedEvents
+ *
+ * @method dispatch
+ * @method enqueue
+ * @method clearQueue
+ * @method
  */
 export class MixpanelProvider {
+  /**
+   * The mixpanel instance
+   */
   private readonly mixpanel: Mixpanel;
 
+  /**
+   * The queue of events that was added by @method enqueue
+   */
   private events: MixpanelEvent[] = [];
 
   constructor(token: string, private options?: MixpanelProviderOptions) {
     this.mixpanel = createMixpanel(token);
   }
 
+  /**
+   * Mounts the event name with the prefix set in the options
+   * @param name
+   */
   private getEventName(name: string) {
     const { eventNamePrefix } = this.options;
     return eventNamePrefix ? `${eventNamePrefix}:${name}` : name;
@@ -44,9 +51,28 @@ export class MixpanelProvider {
   }
 
   /**
+   * Dequeues an event.
+   * @param index
+   */
+  dequeue(index: number | 'last' | 'first') {
+    switch (index) {
+      case 'first':
+        this.events.shift();
+        break;
+      case 'last':
+        this.events.pop();
+      default: {
+        if (Number.isInteger(index) && this.events[+index]) {
+          this.events.splice(+index, 1);
+        }
+      }
+    }
+  }
+
+  /**
    * Clear enqueued events
    */
-  clearEvents() {
+  clearQueue() {
     this.events.splice(0, this.events.length);
   }
 
@@ -58,7 +84,7 @@ export class MixpanelProvider {
       this.mixpanel.track_batch(this.events, (err) => {
         if (err) reject(err);
         else {
-          this.clearEvents();
+          this.clearQueue();
           resolve();
         }
       });
@@ -90,14 +116,14 @@ export class MixpanelProvider {
   /**
    * The amount of enqueued events
    */
-  get eventCount() {
+  get queueSize() {
     return this.events.length;
   }
 
   /**
-   * The enqueued events data
+   * The enqueued events description
    */
-  get enqueuedEvents() {
+  get queue() {
     return this.events;
   }
 
