@@ -2,7 +2,7 @@ import { SlashCommandBuilder } from '@discordjs/builders';
 import linkWalletHandler from '../commandsHandler/link-wallet';
 import getDelegateData from '../commandsHandler/get-delegate-data';
 import { CommandInteraction, MessageEmbed } from 'discord.js';
-import { MixpanelProvider } from 'src/mixpanel/mixpanel.provider';
+import { MixpanelProvider } from '../mixpanel/mixpanel.provider';
 
 export const data = new SlashCommandBuilder()
   .setName('karma')

@@ -62,7 +62,7 @@ export class MixpanelProvider {
       case 'last':
         this.events.pop();
       default: {
-        if (Number.isInteger(index) && this.events[+index]) {
+        if (Number.isSafeInteger(+index) && this.events[+index]) {
           this.events.splice(+index, 1);
         }
       }
@@ -128,7 +128,7 @@ export class MixpanelProvider {
   }
 
   /**
-   * Factories the mixpanel client. If environment variable is not set
+   * Factories the mixpanel client. If environment variable `MIXPANEL_AUTH_TOKEN` is not set
    * it will throw an error.
    */
   static factory(options?: MixpanelProviderOptions) {
