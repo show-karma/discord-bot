@@ -45,7 +45,7 @@ export async function execute(interaction: CommandInteraction) {
       const daoNameWallet = interaction.options.getString('dao') || interaction.guildId;
       replyMessage = await linkWalletHandler(addressWallet, daoNameWallet, interaction.user.id);
 
-      mixpanel.enqueue({
+      mixpanel?.enqueue({
         event: 'linkwallet',
         properties: {
           addressWallet,
@@ -60,7 +60,7 @@ export async function execute(interaction: CommandInteraction) {
       const guildId = interaction.guild.id;
       replyMessage = await getDelegateData(addressStats, daoNameStats, guildId);
 
-      mixpanel.enqueue({
+      mixpanel?.enqueue({
         event: 'stats',
         properties: {
           addressStats,
@@ -75,7 +75,7 @@ export async function execute(interaction: CommandInteraction) {
   }
 
   const messageEmbed = new MessageEmbed().setDescription(replyMessage);
-  mixpanel.dispatch();
+  mixpanel?.dispatch();
   return interaction.editReply({
     embeds: [messageEmbed]
   });

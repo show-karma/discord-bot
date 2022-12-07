@@ -133,12 +133,13 @@ export class MixpanelProvider {
   }
 
   /**
-   * Factories the mixpanel client. If environment variable `MIXPANEL_AUTH_TOKEN` is not set
-   * it will throw an error.
+   * Factories the mixpanel client. If environment variable `MIXPANEL_TOKEN` is not set
+   * it will be undefined.
    */
   static factory(options?: MixpanelProviderOptions) {
     if (process.env?.MIXPANEL_AUTH_TOKEN) {
       return new this(process.env.MIXPANEL_AUTH_TOKEN, options);
-    } else throw new Error('MIXPANEL_AUTH_TOKEN is not set.');
+    }
+    return undefined;
   }
 }
