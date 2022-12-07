@@ -7,10 +7,15 @@ import { MixpanelProviderOptions } from 'src/shared/types';
  * @var queueSize
  * @var enqueuedEvents
  *
+ * @static factory
  * @method dispatch
  * @method enqueue
  * @method clearQueue
- * @method
+ * @method dequeue
+ * @method reportEvent
+ *
+ * @author [Karma](https://showkarma.xyz)
+ * @see [Mixpanel](https://developer.mixpanel.com/docs/nodejs)
  */
 export class MixpanelProvider {
   /**
