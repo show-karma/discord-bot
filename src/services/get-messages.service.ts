@@ -154,6 +154,7 @@ export default class GetPastMessagesService {
       const allUsers = [discordId || users].flat();
       const allMessagesToSave = [];
       let messagescount = 0;
+
       if (!daos.length) {
         throw new Error('Daos are empty');
       }
