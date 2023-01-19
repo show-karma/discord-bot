@@ -157,6 +157,7 @@ export default class GetPastMessagesService {
       if (!daos.length) {
         throw new Error('Daos are empty');
       }
+
       console.log('Daos of user: ', daos);
       console.log('Servers -> bot is inside: ', allBotGuilds);
 
