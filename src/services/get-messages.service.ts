@@ -154,10 +154,12 @@ export default class GetPastMessagesService {
       const allUsers = [discordId || users].flat();
       const allMessagesToSave = [];
       let messagescount = 0;
+
       if (!daos.length) {
         throw new Error('Daos are empty');
       }
-      console.log('Daos of user: ', daos);
+
+      console.log('Daos of User: ', daos);
       console.log('Servers -> bot is inside: ', allBotGuilds);
 
       for (const guild of daos) {
