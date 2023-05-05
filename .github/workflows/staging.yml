@@ -104,7 +104,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        ECS_CONTAINER: ["discord-bot-staging", "delegate-discord-message-update-stat-staging", "discord-channel-cleaner-consumer-staging" ]
+        ECS_CONTAINER: ["discord-bot-staging", "delegate-discord-message-update-stat-staging" ]
     steps:
     - name: Checkout
       uses: actions/checkout@v2
