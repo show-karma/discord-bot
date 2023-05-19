@@ -105,7 +105,7 @@ async function manageRoles(client: Client, guildId: string, handles: string[], a
   );
 
   for (const delegate of delegates) {
-    delegate.balance += delegatesBalance?.[delegate.publicAddress] || 0;
+    delegate.balance = +delegate.balance + (delegatesBalance?.[delegate.publicAddress] || 0);
     const hasPermission = await delegateHasPermission(delegate, dao);
 
     (hasPermission ? addHandles : revokeHandles).push(delegate.discordHandle);
