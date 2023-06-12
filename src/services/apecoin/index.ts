@@ -97,7 +97,7 @@ async function manageRoles(client: Client, guildId: string, handles: string[], a
   if (!delegates?.length) return;
 
   const addHandles = [];
-  const revokeHandles = [];
+  let revokeHandles = [];
 
   const delegatesBalance = await getTokenBalance(
     delegates.map((d) => d.publicAddress),
@@ -110,6 +110,8 @@ async function manageRoles(client: Client, guildId: string, handles: string[], a
 
     (hasPermission ? addHandles : revokeHandles).push(delegate.discordHandle);
   }
+
+  revokeHandles = revokeHandles.filter((handle) => !addHandles.includes(handle));
 
   console.log('addHandles', addHandles);
   console.log('revokeHandles', revokeHandles);
