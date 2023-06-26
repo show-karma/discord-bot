@@ -3,6 +3,7 @@ export interface DiscordSQSMessage {
   userId?: number | number[];
   users?: string[];
   discordId?: string;
+  delegateId?: number;
   publicAddress?: string;
   daos: {
     name: string;

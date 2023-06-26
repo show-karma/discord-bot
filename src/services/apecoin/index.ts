@@ -22,7 +22,7 @@ async function fetchDaoData() {
   }
 }
 
-async function fetchDelegates(daoName: string) {
+async function fetchDelegates(daoName: string, delegateId?: number) {
   const delegateQuery = `
     SELECT "t1"."discordHandle",
         "u"."publicAddress",      
@@ -36,6 +36,7 @@ async function fetchDelegates(daoName: string) {
   WHERE "t1"."daoName" = $1
     AND "t2"."period" = '1y'
     AND "t1"."discordHandle" IS NOT NULL
+    ${delegateId ? `AND "t1"."id" = ${delegateId}` : ''}
     `;
   try {
     const result = await pool.query(delegateQuery, [daoName]);
@@ -89,12 +90,12 @@ async function manageRoles(client: Client, guildId: string, handles: string[], a
   }
 }
 
-(async () => {
+export default async function roleManager(delegateId?: number) {
   const dao = await fetchDaoData();
 
-  const delegates = await fetchDelegates(dao.name);
+  const delegates = await fetchDelegates(dao.name, delegateId);
 
-  if (!delegates?.length) return;
+  if (!delegates?.length) return console.log('No delegates found');
 
   const addHandles = [];
   let revokeHandles = [];
@@ -131,4 +132,6 @@ async function manageRoles(client: Client, guildId: string, handles: string[], a
   });
 
   client.login(process.env.DISCORD_TOKEN);
-})();
+}
+
+(async () => await roleManager())();

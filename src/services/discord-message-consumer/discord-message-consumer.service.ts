@@ -4,6 +4,7 @@ import { DiscordSQSMessage } from 'src/@types/discord-message-update';
 import GetPastMessagesService from '../get-messages.service';
 import { Client, Intents } from 'discord.js';
 import { SentryService } from '../../sentry/sentry.service';
+import roleManager from '../apecoin/index';
 
 const LOG_CTX = 'DelegateStatUpdateConsumerService';
 
@@ -41,6 +42,13 @@ export class DiscordMessageConsumerService {
               if (parsedMessage.daos) {
                 console.log(parsedMessage);
                 await this.getPastMessagesService.getMessages(client, parsedMessage);
+
+                if (
+                  parsedMessage.daos.find((dao) => dao.name === 'apecoin') &&
+                  parsedMessage.delegateId
+                ) {
+                  await roleManager(parsedMessage.delegateId);
+                }
               } else {
                 console.log('no daos');
               }
