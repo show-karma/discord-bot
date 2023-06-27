@@ -39,18 +39,19 @@ export class DiscordMessageConsumerService {
               parsedMessage = JSON.parse(message.message) as DiscordSQSMessage;
 
               console.log(`[${message.messageId}][${JSON.stringify(parsedMessage)}]`, LOG_CTX);
-              if (parsedMessage.daos) {
-                console.log(parsedMessage);
-                await this.getPastMessagesService.getMessages(client, parsedMessage);
 
-                if (
-                  parsedMessage.daos.find((dao) => dao.name === 'apecoin') &&
-                  parsedMessage.delegateId
-                ) {
-                  await roleManager(parsedMessage.delegateId);
-                }
-              } else {
-                console.log('no daos');
+              if (!parsedMessage.daos) return;
+
+              console.log(parsedMessage.reason);
+              switch (parsedMessage.reason) {
+                case 'user-discord-link':
+                  await this.getPastMessagesService.getMessages(client, parsedMessage);
+                  break;
+                case 'delegate-update-discord-roles':
+                  await roleManager(parsedMessage.publicAddress);
+                  break;
+                default:
+                  break;
               }
 
               console.log(`Time [${Date.now() - startTime}]`, LOG_CTX);
