@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable no-console */
 /* eslint-disable @typescript-eslint/no-unsafe-return */
 import axios from 'axios';
@@ -22,7 +23,7 @@ async function fetchDaoData() {
   }
 }
 
-async function fetchDelegates(daoName: string) {
+async function fetchDelegates(daoName: string, publicAddress?: string) {
   const delegateQuery = `
     SELECT "t1"."discordHandle",
         "u"."publicAddress",      
@@ -36,9 +37,10 @@ async function fetchDelegates(daoName: string) {
   WHERE "t1"."daoName" = $1
     AND "t2"."period" = '1y'
     AND "t1"."discordHandle" IS NOT NULL
+    ${publicAddress ? `AND "u"."publicAddress" = $2` : ''}
     `;
   try {
-    const result = await pool.query(delegateQuery, [daoName]);
+    const result = await pool.query(delegateQuery, [daoName, publicAddress]);
     return result?.rows;
   } catch (err) {
     console.error('Error fetching delegates:', err);
@@ -58,19 +60,23 @@ async function fetchDelegateTrustLevel(
 }
 
 async function delegateHasPermission(delegate, dao) {
-  let hasPermission =
+  delegate.trustLevel = !delegate.handle ? 'no forum link' : 'already have the criterea';
+
+  delegate.hasPermission =
     delegate.offChainVotesPct >= 50 ||
     (+delegate.balance >= 50000 && delegate.offChainVotesPct > 0);
 
-  if (!hasPermission && delegate.handle) {
-    const trustLevel = await fetchDelegateTrustLevel(delegate.handle, dao.forum);
-    hasPermission = hasPermission || trustLevel >= 2;
+  if (!delegate.hasPermission && delegate.handle) {
+    delegate.trustLevel = await fetchDelegateTrustLevel(delegate.handle, dao.forum);
+    delegate.hasPermission = delegate.hasPermission || delegate.trustLevel >= 2;
   }
 
-  return hasPermission;
+  return delegate;
 }
 
-async function manageRoles(client: Client, guildId: string, handles: string[], action: string) {
+async function manageRoles(client: Client, guildId: string, handles: any[], action: string) {
+  if (!handles.length) return;
+
   const guild = client.guilds.cache.get(guildId);
 
   if (!guild) throw new Error('Guild not found');
@@ -80,24 +86,26 @@ async function manageRoles(client: Client, guildId: string, handles: string[], a
   if (!role) throw new Error('Role not found');
 
   for (const handle of handles) {
-    const member = await guild.members.fetch(handle).catch(console.error);
+    const member = await guild.members.fetch(handle.discordHandle).catch(console.error);
 
     if (member) {
       await member.roles[action](role).catch(console.error);
-      console.log(`Role: ${role.name} | action: ${action} | user: ${member.user.tag}`);
+      console.log(
+        `Role: ${role.name} | action: ${action} | user: ${member.user.tag} | address: ${handle.publicAddress} | offChain: ${handle.offChainVotesPct} | balance: ${handle.balance} | forumLevel: ${handle.trustLevel} | hasCriterea: ${handle.hasPermission}`
+      );
     }
   }
 }
 
-(async () => {
+export async function discordRoleManager(daoName?: string, publicAddress?: string) {
   const dao = await fetchDaoData();
 
-  const delegates = await fetchDelegates(dao.name);
+  const delegates = await fetchDelegates(dao.name, publicAddress);
 
-  if (!delegates?.length) return;
+  if (!delegates?.length) return console.log('No delegates found');
 
   const addHandles = [];
-  let revokeHandles = [];
+  const revokeHandles = [];
 
   const delegatesBalance = await getTokenBalance(
     delegates.map((d) => d.publicAddress),
@@ -106,15 +114,10 @@ async function manageRoles(client: Client, guildId: string, handles: string[], a
 
   for (const delegate of delegates) {
     delegate.balance = +delegate.balance + (delegatesBalance?.[delegate.publicAddress] || 0);
-    const hasPermission = await delegateHasPermission(delegate, dao);
+    const delegateWithStatus = await delegateHasPermission(delegate, dao);
 
-    (hasPermission ? addHandles : revokeHandles).push(delegate.discordHandle);
+    (delegateWithStatus.hasPermission ? addHandles : revokeHandles).push(delegateWithStatus);
   }
-
-  revokeHandles = revokeHandles.filter((handle) => !addHandles.includes(handle));
-
-  console.log('addHandles', addHandles);
-  console.log('revokeHandles', revokeHandles);
 
   const client = new Client({
     intents: [Intents.FLAGS.GUILDS, Intents.FLAGS.DIRECT_MESSAGES]
@@ -131,4 +134,4 @@ async function manageRoles(client: Client, guildId: string, handles: string[], a
   });
 
   client.login(process.env.DISCORD_TOKEN);
-})();
+}
