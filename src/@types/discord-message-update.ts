@@ -4,6 +4,7 @@ export interface DiscordSQSMessage {
   users?: string[];
   discordId?: string;
   publicAddress?: string;
+  daoName?: string;
   daos: {
     name: string;
     guildId: string;

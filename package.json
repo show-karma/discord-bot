@@ -10,7 +10,7 @@
     "start": "NODE_ENV=development TZ=UTC yarn ts-node src/main.ts",
     "service:discord:message:update:consumer": "TZ=UTC NODE_ENV=development nodemon src/services/discord-message-consumer/main.ts",
     "service:discord:channel:cleaner:consumer": "TZ=UTC NODE_ENV=development nodemon src/services/discord-channel-cleaner-consumer/main.ts",
-    "apecoin:role:update": "yarn ts-node src/services/apecoin/index.ts"
+    "apecoin:role:update": "yarn ts-node src/services/apecoin/job.ts"
   },
   "dependencies": {
     "@discordjs/builders": "^0.15.0",

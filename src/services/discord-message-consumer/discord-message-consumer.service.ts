@@ -4,6 +4,7 @@ import { DiscordSQSMessage } from 'src/@types/discord-message-update';
 import GetPastMessagesService from '../get-messages.service';
 import { Client, Intents } from 'discord.js';
 import { SentryService } from '../../sentry/sentry.service';
+import { discordRoleManager } from '../apecoin';
 
 const LOG_CTX = 'DelegateStatUpdateConsumerService';
 
@@ -38,11 +39,16 @@ export class DiscordMessageConsumerService {
               parsedMessage = JSON.parse(message.message) as DiscordSQSMessage;
 
               console.log(`[${message.messageId}][${JSON.stringify(parsedMessage)}]`, LOG_CTX);
-              if (parsedMessage.daos) {
-                console.log(parsedMessage);
-                await this.getPastMessagesService.getMessages(client, parsedMessage);
-              } else {
-                console.log('no daos');
+              console.log({ parsedMessage });
+
+              if (parsedMessage.reason === 'user-discord-link') {
+                if (parsedMessage.daos) {
+                  await this.getPastMessagesService.getMessages(client, parsedMessage);
+                } else {
+                  console.log('No Daos found in the message');
+                }
+              } else if (parsedMessage.reason === 'delegate-update-discord-roles') {
+                await discordRoleManager(parsedMessage.daoName, parsedMessage.publicAddress);
               }
 
               console.log(`Time [${Date.now() - startTime}]`, LOG_CTX);

@@ -23,7 +23,7 @@ async function fetchDaoData() {
   }
 }
 
-async function fetchDelegates(daoName: string) {
+async function fetchDelegates(daoName: string, publicAddress?: string) {
   const delegateQuery = `
     SELECT "t1"."discordHandle",
         "u"."publicAddress",      
@@ -37,9 +37,10 @@ async function fetchDelegates(daoName: string) {
   WHERE "t1"."daoName" = $1
     AND "t2"."period" = '1y'
     AND "t1"."discordHandle" IS NOT NULL
+    ${publicAddress ? `AND "u"."publicAddress" = $2` : ''}
     `;
   try {
-    const result = await pool.query(delegateQuery, [daoName]);
+    const result = await pool.query(delegateQuery, [daoName, publicAddress]);
     return result?.rows;
   } catch (err) {
     console.error('Error fetching delegates:', err);
@@ -96,12 +97,12 @@ async function manageRoles(client: Client, guildId: string, handles: any[], acti
   }
 }
 
-(async () => {
+export async function discordRoleManager(daoName?: string, publicAddress?: string) {
   const dao = await fetchDaoData();
 
-  const delegates = await fetchDelegates(dao.name);
+  const delegates = await fetchDelegates(dao.name, publicAddress);
 
-  if (!delegates?.length) return;
+  if (!delegates?.length) return console.log('No delegates found');
 
   const addHandles = [];
   const revokeHandles = [];
@@ -133,4 +134,4 @@ async function manageRoles(client: Client, guildId: string, handles: any[], acti
   });
 
   client.login(process.env.DISCORD_TOKEN);
-})();
+}

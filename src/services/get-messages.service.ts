@@ -126,11 +126,21 @@ export default class GetPastMessagesService {
   async createUpdateDelegateStatsMessage(
     allMessagesToSave: MessageCustom[],
     publicAddress,
+    daoName,
     reason
   ) {
-    for (const message of _.uniqBy(allMessagesToSave, 'userId')) {
+    if (allMessagesToSave.length > 0) {
+      for (const message of _.uniqBy(allMessagesToSave, 'userId')) {
+        await this.delegateStatUpdateProducerService.produce({
+          dao: message.daoName,
+          publicAddress,
+          reason,
+          timestamp: Date.now()
+        });
+      }
+    } else {
       await this.delegateStatUpdateProducerService.produce({
-        dao: message.daoName,
+        dao: daoName,
         publicAddress,
         reason,
         timestamp: Date.now()
@@ -152,7 +162,6 @@ export default class GetPastMessagesService {
     try {
       const allBotGuilds = Array.from(await client.guilds.fetch());
       const allUsers = [discordId || users].flat();
-      const allMessagesToSave = [];
       let messagescount = 0;
 
       if (!daos.length) {
@@ -163,6 +172,7 @@ export default class GetPastMessagesService {
       console.log('Servers -> bot is inside: ', allBotGuilds);
 
       for (const guild of daos) {
+        const allMessagesToSave = [];
         if (!allBotGuilds.find((item) => +item[0] === +guild.guildId)) continue;
 
         const formattedGuildChannels = guild.channelIds
@@ -241,15 +251,19 @@ export default class GetPastMessagesService {
             console.log(err.message, channel);
           }
         }
-      }
 
-      console.log('All messages count: ', messagescount);
-      console.log('allMessagesToSave length: ', allMessagesToSave.length);
-      if (allMessagesToSave.length > 0) {
-        await this.insertAllMessages(allMessagesToSave);
-
+        console.log('All messages count: ', messagescount);
+        console.log('allMessagesToSave length: ', allMessagesToSave.length);
+        if (allMessagesToSave.length > 0) {
+          await this.insertAllMessages(allMessagesToSave);
+        }
         if (reason === 'user-discord-link') {
-          await this.createUpdateDelegateStatsMessage(allMessagesToSave, publicAddress, reason);
+          await this.createUpdateDelegateStatsMessage(
+            allMessagesToSave,
+            publicAddress,
+            guild.name,
+            reason
+          );
         }
       }
     } catch (err) {
