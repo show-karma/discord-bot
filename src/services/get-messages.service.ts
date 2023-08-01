@@ -7,7 +7,7 @@ import { Client } from 'discord.js';
 import { delay } from '../utils/delay';
 import dotenv from 'dotenv';
 import { LastMessageIdGetterService } from './last-message-id-getter.service';
-import { Message, MessageBulkWriter } from './message-bulk-writer';
+import { Message, BulkWriter } from './bulk-writer';
 import { DiscordSQSMessage } from '../@types/discord-message-update';
 import _ from 'lodash';
 import { DelegateStatUpdateProducerService } from './delegate-stat-update-producer/delegate-stat-update-producer.service';
@@ -47,7 +47,7 @@ interface MessageCustom extends Message {
 export default class GetPastMessagesService {
   constructor(
     private readonly getMessageService = new LastMessageIdGetterService(),
-    private readonly messageBulkWriter = new MessageBulkWriter(),
+    private readonly messageBulkWriter = new BulkWriter(),
     private readonly delegateStatUpdateProducerService = new DelegateStatUpdateProducerService()
   ) {}
 
