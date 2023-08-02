@@ -98,7 +98,7 @@ async function manageRoles(client: Client, guildId: string, handles: any[], acti
 
   for (const handle of handles) {
     try {
-      const member = await guild.members.fetch(handle.discordHandle);
+      const member = await guild.members.fetch(handle.discordHandle).catch(() => null);
 
       if (member) {
         await member.roles[action](role);
@@ -113,7 +113,7 @@ async function manageRoles(client: Client, guildId: string, handles: any[], acti
   }
 
   const BulkWriterClient = new BulkWriter();
-  await BulkWriterClient.updateRolesLogs(action, handles, ROLE_NAME);
+  await BulkWriterClient.updateRolesLogs(action, sucessHandles, ROLE_NAME);
 }
 
 export async function discordRoleManager(_?: string, publicAddress?: string) {
