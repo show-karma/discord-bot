@@ -5,6 +5,7 @@ import axios from 'axios';
 import pool from '../../config/database-config';
 import { Client, Intents } from 'discord.js';
 import getTokenBalance from '../../utils/get-token-balance';
+import { BulkWriter } from '../bulk-writer';
 
 const ROLE_NAME = 'Assembly';
 
@@ -24,12 +25,16 @@ async function fetchDaoData() {
 }
 
 async function fetchDelegates(daoName: string, publicAddress?: string) {
-  const delegateQuery = `
-    SELECT "t1"."discordHandle",
-        "u"."publicAddress",      
-        "t2"."offChainVotesPct",
-        "t1"."snapshotDelegatedVotes" as "balance",
-        "t3"."handle"
+  const params: any[] = [daoName];
+
+  let delegateQuery = `
+    SELECT 
+      "t1"."id",
+      "t1"."discordHandle",
+      "u"."publicAddress",      
+      "t2"."offChainVotesPct",
+      "t1"."snapshotDelegatedVotes" as "balance",
+      "t3"."handle"
   FROM "Delegate" AS t1
   INNER JOIN "User" as u on "t1"."userId" = "u"."id"
   INNER JOIN "DelegateStat" AS t2 ON "t1"."id" = "t2"."delegateId"
@@ -37,10 +42,15 @@ async function fetchDelegates(daoName: string, publicAddress?: string) {
   WHERE "t1"."daoName" = $1
     AND "t2"."period" = '1y'
     AND "t1"."discordHandle" IS NOT NULL
-    ${publicAddress ? `AND "u"."publicAddress" = $2` : ''}
     `;
+
+  if (publicAddress) {
+    params.push(publicAddress);
+    delegateQuery += ` AND "u"."publicAddress" = $2`;
+  }
+
   try {
-    const result = await pool.query(delegateQuery, [daoName, publicAddress]);
+    const result = await pool.query(delegateQuery, params);
     return result?.rows;
   } catch (err) {
     console.error('Error fetching delegates:', err);
@@ -95,12 +105,15 @@ async function manageRoles(client: Client, guildId: string, handles: any[], acti
       );
     }
   }
+
+  const BulkWriterClient = new BulkWriter();
+  await BulkWriterClient.updateRolesLogs(action, handles, ROLE_NAME);
 }
 
-export async function discordRoleManager(daoName?: string, publicAddress?: string) {
+export async function discordRoleManager(_?: string, publicAddress?: string) {
   const dao = await fetchDaoData();
-
   const delegates = await fetchDelegates(dao.name, publicAddress);
+  console.log(delegates);
 
   if (!delegates?.length) return console.log('No delegates found');
 
