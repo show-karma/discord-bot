@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import pool from '../config/database-config';
 
 const BULK_SIZE = 1000;
@@ -11,7 +12,7 @@ export interface Message {
   messageType: string;
 }
 
-export class MessageBulkWriter {
+export class BulkWriter {
   private messages: Message[] = [];
   private messageCount = 0;
   private messageInsertCount = 0;
@@ -48,6 +49,31 @@ export class MessageBulkWriter {
       .join(',');
 
     const sql = `INSERT INTO "DelegateDiscordMessage" ("userId", "messageId", "guildId", "channelId", "messageCreatedAt", "messageType") VALUES ${insertValues} ON CONFLICT ("messageId", "userId", "guildId", "channelId") DO NOTHING`;
+
+    await pool.query(sql);
+  }
+
+  async updateRolesLogs(action: string, delegates: any[], role: string) {
+    const integration = 'discord';
+    const description = 'discord role';
+    const dateNow = Date.now();
+
+    const insertValues = delegates
+      .map(
+        (d) =>
+          `('${d.id}', '${integration}', '${description}', '${role.toLowerCase()}', '${dateNow}')`
+      )
+      .join(',');
+
+    const sql =
+      action === 'add'
+        ? `INSERT INTO "DelegateIntegrations" ("delegateId", "integration", "description", "attribute", "issuedAt") VALUES ${insertValues} 
+      ON CONFLICT ("delegateId", "integration", "attribute") 
+      DO UPDATE SET "issuedAt" = CASE WHEN "DelegateIntegrations"."issuedAt" IS NULL THEN '${dateNow}'
+          ELSE "DelegateIntegrations"."issuedAt" END`
+        : `UPDATE "DelegateIntegrations" SET "issuedAt" = null
+        WHERE "delegateId" IN (${delegates.map((d) => d.id as number).join(', ')}) 
+        AND "attribute" = '${role.toLowerCase()}' `;
 
     await pool.query(sql);
   }
