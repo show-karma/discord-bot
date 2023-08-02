@@ -94,15 +94,21 @@ async function manageRoles(client: Client, guildId: string, handles: any[], acti
   const role = guild.roles.cache.find((role) => role.name === ROLE_NAME);
 
   if (!role) throw new Error('Role not found');
+  const sucessHandles = [];
 
   for (const handle of handles) {
-    const member = await guild.members.fetch(handle.discordHandle).catch(console.error);
+    try {
+      const member = await guild.members.fetch(handle.discordHandle);
 
-    if (member) {
-      await member.roles[action](role).catch(console.error);
-      console.log(
-        `Role: ${role.name} | action: ${action} | user: ${member.user.tag} | address: ${handle.publicAddress} | offChain: ${handle.offChainVotesPct} | balance: ${handle.balance} | forumLevel: ${handle.trustLevel} | hasCriterea: ${handle.hasPermission}`
-      );
+      if (member) {
+        await member.roles[action](role);
+        console.log(
+          `Role: ${role.name} | action: ${action} | user: ${member.user.tag} | address: ${handle.publicAddress} | offChain: ${handle.offChainVotesPct} | balance: ${handle.balance} | forumLevel: ${handle.trustLevel} | hasCriterea: ${handle.hasPermission}`
+        );
+        sucessHandles.push(handle);
+      }
+    } catch (err) {
+      console.log(err);
     }
   }
 
@@ -113,7 +119,6 @@ async function manageRoles(client: Client, guildId: string, handles: any[], acti
 export async function discordRoleManager(_?: string, publicAddress?: string) {
   const dao = await fetchDaoData();
   const delegates = await fetchDelegates(dao.name, publicAddress);
-  console.log(delegates);
 
   if (!delegates?.length) return console.log('No delegates found');
 

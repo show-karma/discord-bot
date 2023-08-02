@@ -56,24 +56,24 @@ export class BulkWriter {
   async updateRolesLogs(action: string, delegates: any[], role: string) {
     const integration = 'discord';
     const description = 'discord role';
+    const dateNow = Date.now();
 
     const insertValues = delegates
       .map(
         (d) =>
-          `('${
-            d.id
-          }', '${integration}', '${description}', '${role.toLowerCase()}', '${Date.now()}')`
+          `('${d.id}', '${integration}', '${description}', '${role.toLowerCase()}', '${dateNow}')`
       )
       .join(',');
 
-    const sql = `INSERT INTO "DelegateIntegrations" ("delegateId", "integration", "description", "attribute", "issuedAt") VALUES ${insertValues} 
+    const sql =
+      action === 'add'
+        ? `INSERT INTO "DelegateIntegrations" ("delegateId", "integration", "description", "attribute", "issuedAt") VALUES ${insertValues} 
       ON CONFLICT ("delegateId", "integration", "attribute") 
-      ${
-        action === 'add'
-          ? `DO UPDATE SET "issuedAt" = CASE WHEN "DelegateIntegrations"."issuedAt" IS NULL THEN '${Date.now()}'
+      DO UPDATE SET "issuedAt" = CASE WHEN "DelegateIntegrations"."issuedAt" IS NULL THEN '${dateNow}'
           ELSE "DelegateIntegrations"."issuedAt" END`
-          : 'DO UPDATE SET "issuedAt" = null'
-      }`;
+        : `UPDATE "DelegateIntegrations" SET "issuedAt" = null
+        WHERE "delegateId" IN (${delegates.map((d) => d.id as number).join(', ')}) 
+        AND "attribute" = '${role.toLowerCase()}' `;
 
     await pool.query(sql);
   }
