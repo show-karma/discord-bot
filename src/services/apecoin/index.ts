@@ -42,6 +42,7 @@ async function fetchDelegates(daoName: string, publicAddress?: string) {
   WHERE "t1"."daoName" = $1
     AND "t2"."period" = '1y'
     AND "t1"."discordHandle" IS NOT NULL
+    AND "u"."twitterHandle" IS NOT NULL
     `;
 
   if (publicAddress) {
@@ -81,7 +82,6 @@ async function delegateHasPermission(delegate, dao) {
     delegate.hasPermission = delegate.hasPermission || delegate.trustLevel >= 2;
   }
 
-  delegate.hasPermission = false;
   return delegate;
 }
 
@@ -104,7 +104,7 @@ async function manageRoles(client: Client, guildId: string, handles: any[], acti
       if (member) {
         await member.roles[action](role);
         console.log(
-          `Role: ${role.name} | action: ${action} | user: ${member.user.tag} | address: ${handle.publicAddress} | offChain: ${handle.offChainVotesPct} | balance: ${handle.balance} | forumLevel: ${handle.trustLevel} | hasCriterea: ${handle.hasPermission}`
+          `Role: ${role.name} | action: ${action} | user: ${member.user.tag} | address: ${handle.publicAddress} | offChain: ${handle.offChainVotesPct} | balance: ${handle.balance} | forumLevel: ${handle.trustLevel} | twitter: ${handle.twitterHandle} | hasCriterea: ${handle.hasPermission}`
         );
         sucessHandles.push(handle);
       }
