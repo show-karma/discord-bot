@@ -34,7 +34,8 @@ async function fetchDelegates(daoName: string, publicAddress?: string) {
       "u"."publicAddress",      
       "t2"."offChainVotesPct",
       "t1"."snapshotDelegatedVotes" as "balance",
-      "t3"."handle"
+      "t3"."handle",
+      "u"."twitterHandle"
   FROM "Delegate" AS t1
   INNER JOIN "User" as u on "t1"."userId" = "u"."id"
   INNER JOIN "DelegateStat" AS t2 ON "t1"."id" = "t2"."delegateId"
@@ -81,6 +82,8 @@ async function delegateHasPermission(delegate, dao) {
     delegate.trustLevel = await fetchDelegateTrustLevel(delegate.handle, dao.forum);
     delegate.hasPermission = delegate.hasPermission || delegate.trustLevel >= 2;
   }
+
+  if (!delegate.twitterHandle) delegate.hasPermission = false;
 
   return delegate;
 }
