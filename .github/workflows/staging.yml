@@ -54,7 +54,7 @@ jobs:
       uses: aws-actions/amazon-ecr-login@v2
 
     - name: Cache Docker layers
-      uses: actions/cache@v3
+      uses: actions/cache@v4
       with:
         path: /tmp/.buildx-cache
          # Key is named differently to avoid collision
@@ -63,7 +63,7 @@ jobs:
           ${{ runner.os }}-buildx
 
     - name: Build image
-      uses: docker/build-push-action@v3
+      uses: docker/build-push-action@v5
       env:
         ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
         ECR_REPOSITORY: ${{ env.ECR_REPOSITORY_MAIN }}
