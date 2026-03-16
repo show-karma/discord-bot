@@ -41,7 +41,7 @@ export class DiscordMessageConsumerService {
               console.log(`[${message.messageId}][${JSON.stringify(parsedMessage)}]`, LOG_CTX);
               console.log({ parsedMessage });
 
-              if (parsedMessage.reason === 'user-discord-link') {
+              if (parsedMessage.reason === 'user-discord-link' || parsedMessage.reason === 'discord-fetch-daily') {
                 if (parsedMessage.daos) {
                   await this.getPastMessagesService.getMessages(client, parsedMessage);
                 } else {
