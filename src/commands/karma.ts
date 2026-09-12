@@ -10,9 +10,9 @@ export const data = new SlashCommandBuilder()
   .addSubcommand((subcommand) =>
     subcommand
       .setName('linkwallet')
-      .setDescription('link you eth address!')
+      .setDescription('link your ETH address!')
       .addStringOption((option) =>
-        option.setName('address').setDescription('Eth address or ens name').setRequired(true)
+        option.setName('address').setDescription('ETH address or ENS name').setRequired(true)
       )
       .addStringOption((option) => option.setName('dao').setDescription(`Enter daoName to link`))
   )
@@ -21,10 +21,10 @@ export const data = new SlashCommandBuilder()
       .setName('stats')
       .setDescription('get info delegate info using address, forum name or userId')
       .addStringOption((option) =>
-        option.setName('user').setDescription('Enter address or ens name').setRequired(true)
+        option.setName('user').setDescription('Enter ETH address or ENS name').setRequired(true)
       )
       .addStringOption((option) =>
-        option.setName('dao').setDescription(`Enter daoName or "all" to get all dao stats`)
+        option.setName('dao').setDescription(`Enter daoName or "all" to get all DAO stats`)
       )
   );
 
